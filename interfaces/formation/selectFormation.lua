@@ -7,6 +7,12 @@ local supabase = require("config.supabase")
 local apiUsers = require("api.getUsers")
 local userDataLib = require("lib.userData")
 local cardS = require("components.cardS")
+local topBack = require("components.backTop")
+local navbar = require("components.navBar")
+local CharacterType = require("components.characterType")
+local textile = require("utils.textile")
+local cloudOn = require("utils.cloudOn")
+local cloudOff = require("utils.cloudOff")
 
 local scene = composer.newScene()
 local MAX_SELECT = 5
@@ -21,62 +27,39 @@ local function contains(tbl, val)
     return false
 end
 
+local function getCardTypeImage(t)
+    if t == "atk" then
+        return "assets/7card/prof_attack.png"
+    elseif t == "cr" then
+        return "assets/7card/prof_heal.png"
+    elseif t == "bal" then
+        return "assets/7card/prof_balance.png"
+    elseif t == "def" then
+        return "assets/7card/prof_defense.png"
+    end
+    return nil
+end
+
 function scene:create(event)
     local group = self.view
     local data = userDataLib.load() or {}
     local userId = data.id
 
-    -- Título
-    display.newText({
-        parent = group,
-        text = "Selecione até 5 cartas:",
-        x = display.contentCenterX,
-        y = 40,
-        font = native.systemFontBold,
-        fontSize = 24
+    cloudOff.show({
+        time = 600
     })
 
-    -- Botão Confirmar
-    local confirmBtn = display.newText({
-        parent = group,
-        text = "Confirmar",
-        x = display.contentCenterX,
-        y = display.contentHeight - 50,
-        font = native.systemFontBold,
-        fontSize = 20
+    local image = display.newImageRect(group, "assets/7bg/bg_yellow_large.jpg", display.contentWidth,
+        display.contentHeight * 1.44)
+    image.x, image.y = display.contentCenterX, display.contentCenterY
+
+    local topBack = topBack.new({
+        title = "Escolher Membro do Time "
     })
-    confirmBtn:setFillColor(0, 0.5, 1)
+    group:insert(topBack)
 
     scene.selectedIDs = {}
     local initialFormation = {}
-
-    function confirmBtn:tap()
-        if #scene.selectedIDs == 0 then
-            native.showAlert("Atenção", "Selecione ao menos uma carta.", {"OK"})
-            return true
-        end
-        local url = string.format("%s/rest/v1/user_formation?userId=eq.%d", supabase.SUPABASE_URL, userId)
-        network.request(url, "PATCH", function(ev)
-            if ev.isError then
-                native.showAlert("Erro", "Falha ao atualizar.", {"OK"})
-            else
-                native.showAlert("Sucesso", "Formação salva!", {"OK"}, function()
-                    composer.gotoScene("interfaces.formation.formation")
-                end)
-            end
-        end, {
-            headers = {
-                ["apikey"] = supabase.SUPABASE_ANON_KEY,
-                ["Authorization"] = "Bearer " .. supabase.SUPABASE_ANON_KEY,
-                ["Content-Type"] = "application/json"
-            },
-            body = json.encode({
-                formation = scene.selectedIDs
-            })
-        })
-        return true
-    end
-    confirmBtn:addEventListener("tap", confirmBtn)
 
     -- 1) Carrega formação existente
     apiUsers.fetchFormation(userId, function(fetched, ferr)
@@ -112,40 +95,66 @@ function scene:create(event)
                 return
             end
             local recs = json.decode(ev.response)
+
+            table.sort(recs, function(a, b)
+                if a.stars ~= b.stars then
+                    return a.stars > b.stars
+                else
+                    return a.level > b.level
+                end
+            end)
             -- Cria ScrollView com scrollHeight adequado
             local rowHeight = 140
             local padding = 20
             local scrollView = widget.newScrollView({
-                top = 80,
-                left = 20,
-                width = display.contentWidth - 40,
-                height = display.contentHeight - 160,
+                top = -100,
+                left = 0,
+                width = display.contentWidth,
+                height = 1200,
                 scrollHeight = #recs * rowHeight + padding,
                 horizontalScrollDisabled = true,
-                verticalScrollDisabled = false
+                verticalScrollDisabled = false,
+                hideBackground = true
             })
             group:insert(scrollView)
 
+            -- css
             for i, rec in ipairs(recs) do
-                local rowY = (i - 1) * rowHeight + rowHeight * 0.5
+                local rowY = (i - 1) * 160 + 100
+                -- fundo da célula
+                local cellBg = display.newImageRect(scrollView, "assets/7bg/bg_cell_brown_2.png", 584, 132)
+                cellBg.x = scrollView.contentWidth * 0.5
+                cellBg.y = rowY
+                scrollView:insert(cellBg)
+
                 -- Card
                 local card = cardS.new({
-                    x = 60,
-                    y = rowY,
+                    x = 40,
+                    y = rowY - 10,
                     characterId = rec.characterId,
                     stars = rec.stars,
-                    scaleFactor = 0.8
+                    scaleFactor = 0.9
+
                 })
                 scrollView:insert(card)
+                card.anchorX = 0
 
-                -- Checkbox de seleção
+                local typeIconGroup = CharacterType.new {
+                    x = card.x + 140,
+                    y = rowY - 40,
+                    characterId = rec.characterId,
+                    size = 42,
+                    callback = function(icon)
+                    end
+                }
+                scrollView:insert(typeIconGroup)
+
                 local isSel = contains(scene.selectedIDs, rec.id)
-                -- cria ambos ícones
-                local cbSel = display.newImageRect("assets/7misc/misc_check_box_selected.png", 32, 32)
-                local cbUns = display.newImageRect("assets/7misc/misc_check_box_unselected.png", 32, 32)
-                cbSel.x = card.x + card.width * 0.5 + 40
-                cbSel.y = card.y - card.height * 0.4
-                cbUns.x = cbSel.x
+                local cbSel = display.newImageRect("assets/7misc/misc_check_box_selected.png", 32 * 2.5, 32 * 2.5)
+                local cbUns = display.newImageRect("assets/7misc/misc_check_box_unselected.png", 32 * 2.5, 32 * 2.5)
+                cbSel.x = card.x + 520
+                cbSel.y = card.y - card.height * -0.2
+                cbUns.x = cbSel.x + 0.5
                 cbUns.y = cbSel.y
                 cbSel.isVisible = isSel
                 cbUns.isVisible = not isSel
@@ -171,40 +180,149 @@ function scene:create(event)
                             cbSel.isVisible = true
                             cbUns.isVisible = false
                         else
-                            native.showAlert("Atenção", "Máximo 5 cartas.", {"OK"})
+
                         end
                     end
                     return true
                 end
                 cbSel:addEventListener("tap", toggle)
                 cbUns:addEventListener("tap", toggle)
+                cellBg:addEventListener("tap", toggle)
 
-                -- Informações ao lado
-                local infoX = 150
-                local nameTxt = display.newText(rec.name or "", infoX, rowY - 40, native.systemFont, 16)
-                nameTxt.anchorX = 0;
-                scrollView:insert(nameTxt)
-                local lvlTxt = display.newText("Lv." .. (rec.level or 1), infoX, rowY - 20, native.systemFont, 14)
-                lvlTxt.anchorX = 0;
-                scrollView:insert(lvlTxt)
-                local ctype = (rec.characters and rec.characters[1] and rec.characters[1].card_type) or ""
-                local typeTxt = display.newText(ctype, infoX, rowY, native.systemFont, 14)
-                typeTxt.anchorX = 0;
-                scrollView:insert(typeTxt)
-                local hpTxt = display.newText("HP:" .. rec.hp, infoX, rowY + 20, native.systemFont, 14)
-                hpTxt.anchorX = 0;
-                scrollView:insert(hpTxt)
-                local atkTxt = display.newText("ATK:" .. rec.atk, infoX, rowY + 40, native.systemFont, 14)
-                atkTxt.anchorX = 0;
-                scrollView:insert(atkTxt)
-                local starsTxt = display.newText("★" .. rec.stars, infoX, rowY + 60, native.systemFont, 14)
-                starsTxt.anchorX = 0;
-                scrollView:insert(starsTxt)
+                local nameText = textile.new({
+                    texto = rec.name .. " " or "",
+                    x = 210,
+                    y = rowY - 40,
+                    tamanho = 24,
+                    corTexto = {1, 1, 1}, -- Amarelo {0.95, 0.86, 0.31}
+                    corContorno = {0, 0, 0},
+                    espessuraContorno = 2,
+                    anchorX = 0
+                })
+                scrollView:insert(nameText)
+
+                local st = rec.stars or 2
+                local lvl = rec.level or 1
+                local bgColor
+                if st == 2 then
+                    bgColor = {0.5, 0.5, 0.5} -- cinza
+                elseif st <= 4 then
+                    bgColor = {0, 1, 0} -- verde
+                elseif st <= 7 then
+                    bgColor = {0, 0, 1} -- azul
+                elseif st <= 11 then
+                    bgColor = {0.5, 0, 0.5} -- roxo
+                else
+                    bgColor = {1, 1, 1} -- branco padrão
+                end
+
+                local rect = display.newRoundedRect(card, 0, 66, 105, 24, 20)
+                rect:setFillColor(unpack(bgColor))
+
+                local levelText = textile.new({
+                    group = card,
+                    texto = " Nv" .. lvl .. " ",
+                    x = rect.x,
+                    y = rect.y,
+                    tamanho = 20,
+                    corTexto = {1, 1, 1},
+                    corContorno = {0, 0, 0},
+                    espessuraContorno = 2
+                })
+
+                local hpIcon = display.newImageRect(card, "assets/7icon/icon_hp.png", 48, 48)
+                hpIcon.x, hpIcon.y = 85, 25
+
+                local hpText = textile.new({
+                    group = card,
+                    texto = " " .. rec.hp .. " " or " " .. 1 .. " ",
+                    x = hpIcon.x + 15,
+                    y = hpIcon.y + 1,
+                    tamanho = 22,
+                    corTexto = {1, 1, 1},
+                    corContorno = {0, 0, 0},
+                    espessuraContorno = 2,
+                    anchorX = 0
+                })
+
+                local atkIcon = display.newImageRect(card, "assets/7icon/icon_atk.png", 48, 48)
+                atkIcon.x, atkIcon.y = 260, 25
+
+                local atkText = textile.new({
+                    group = card,
+                    texto = " " .. rec.atk .. " " or " " .. 1 .. " ",
+                    x = atkIcon.x + 15,
+                    y = atkIcon.y + 1,
+                    tamanho = 22,
+                    corTexto = {1, 1, 1},
+                    corContorno = {0, 0, 0},
+                    espessuraContorno = 2,
+                    anchorX = 0
+                })
+
             end
+
+            local darkShadow = display.newImageRect(group, "assets/7bg/bg_battle_spirit_psychic_surgery.png", 768,
+                1136 / 2)
+            darkShadow.x, darkShadow.y = display.contentCenterX, display.contentCenterY + 500
+
+            local navbar = navbar.new()
+            group:insert(navbar)
+
+            local modalConfirm = display.newImageRect(group, "assets/7textbg/backpack.png", 250 * 1.2, 80 * 1.2)
+            modalConfirm.x, modalConfirm.y = display.contentCenterX + 200, display.contentHeight + 60
+
+            local confirmBtn = display.newImageRect(group, "assets/7button/btn_common_yellow_s9.png", 244 / 1.1,
+                76 / 1.1)
+            confirmBtn.x, confirmBtn.y = modalConfirm.x - 10, modalConfirm.y
+            local text = textile.new({
+                group = group,
+                texto = " Confirmar ",
+                x = confirmBtn.x,
+                y = confirmBtn.y,
+                tamanho = 22,
+                corTexto = {1, 1, 1}, -- Amarelo {0.95, 0.86, 0.31}
+                corContorno = {0, 0, 0},
+                espessuraContorno = 2
+            })
+            function confirmBtn:tap()
+                if #scene.selectedIDs == 0 then
+                    native.showAlert("Atenção", "Selecione ao menos uma carta.", {"OK"})
+                    return true
+                end
+                local url = string.format("%s/rest/v1/user_formation?userId=eq.%d", supabase.SUPABASE_URL, userId)
+                network.request(url, "PATCH", function(ev)
+                    if ev.isError then
+                        native.showAlert("Erro", "Falha ao atualizar.", {"OK"})
+                    else
+
+                        cloudOn.show({
+                            time = 300
+                        })
+                        timer.performWithDelay(300, function()
+                            composer.removeScene("interfaces.formation.formation")
+                            composer.gotoScene("interfaces.formation.formation")
+                        end)
+
+                    end
+                end, {
+                    headers = {
+                        ["apikey"] = supabase.SUPABASE_ANON_KEY,
+                        ["Authorization"] = "Bearer " .. supabase.SUPABASE_ANON_KEY,
+                        ["Content-Type"] = "application/json"
+                    },
+                    body = json.encode({
+                        formation = scene.selectedIDs
+                    })
+                })
+                return true
+            end
+            confirmBtn:addEventListener("tap", confirmBtn)
         end, {
             headers = headers
         })
     end)
+
 end
 
 scene:addEventListener("create", scene)
