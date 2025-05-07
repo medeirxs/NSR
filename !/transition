@@ -1,0 +1,10 @@
+
+local cloudOn = require("utils.cloudOn") -- entrada
+cloudOn.show({
+    time = 600
+})
+
+local cloudOff = require("utils.cloudOff") -- saida
+cloudOff.show({
+    time = 600
+})

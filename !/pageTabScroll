@@ -1,0 +1,249 @@
+local composer = require("composer")
+local widget = require("widget")
+local navBar = require("components.navBar")
+
+local scene = composer.newScene()
+local tabContents = {
+    chestActivities = nil,
+    dailyLogin = nil,
+    ongakuRamen = nil,
+    achievements = nil,
+    moneyTree = nil
+}
+
+local currentTab = nil
+local selectedTab = nil
+
+local function chestActivities()
+    local group = display.newGroup()
+
+    local title = display.newText({
+        text = "Sintetizar",
+        x = display.contentCenterX,
+        y = display.contentCenterY,
+        font = native.systemFontBold,
+        fontSize = 28
+    })
+    group:insert(title)
+
+    local myNavBar = navBar.new()
+    group:insert(myNavBar)
+    return group
+end
+
+local function dailyLogin()
+    local group = display.newGroup()
+
+    local title = display.newText({
+        text = "Decompor",
+        x = display.contentCenterX,
+        y = display.contentCenterY,
+        font = native.systemFontBold,
+        fontSize = 28
+    })
+    group:insert(title)
+
+    local myNavBar = navBar.new()
+    group:insert(myNavBar)
+    return group
+end
+
+local function ongakuRamen()
+    local group = display.newGroup()
+
+    local title = display.newText({
+        text = "Decompor",
+        x = display.contentCenterX,
+        y = display.contentCenterY,
+        font = native.systemFontBold,
+        fontSize = 28
+    })
+    group:insert(title)
+
+    local myNavBar = navBar.new()
+    group:insert(myNavBar)
+    return group
+end
+
+local function achievements()
+    local group = display.newGroup()
+
+    local title = display.newText({
+        text = "Decompor",
+        x = display.contentCenterX,
+        y = display.contentCenterY,
+        font = native.systemFontBold,
+        fontSize = 28
+    })
+    group:insert(title)
+
+    local myNavBar = navBar.new()
+    group:insert(myNavBar)
+    return group
+end
+
+local function moneyTree()
+    local group = display.newGroup()
+
+    local title = display.newText({
+        text = "Decompor",
+        x = display.contentCenterX,
+        y = display.contentCenterY,
+        font = native.systemFontBold,
+        fontSize = 28
+    })
+    group:insert(title)
+
+    local myNavBar = navBar.new()
+    group:insert(myNavBar)
+    return group
+end
+
+-- Atualizar o conteúdo da aba selecionada
+local function updateTabContent(tabName)
+    for _, group in pairs(tabContents) do
+        if group then
+            group.isVisible = false
+        end
+    end
+
+    if not tabContents[tabName] then
+        if tabName == "chestActivities" then
+            tabContents[tabName] = chestActivities()
+        elseif tabName == "dailyLogin" then
+            tabContents[tabName] = dailyLogin()
+        elseif tabName == "ongakuRamen" then
+            tabContents[tabName] = ongakuRamen()
+        elseif tabName == "achievements" then
+            tabContents[tabName] = achievements()
+        elseif tabName == "moneyTree" then
+            tabContents[tabName] = moneyTree()
+        end
+        scene.view:insert(tabContents[tabName])
+    end
+
+    tabContents[tabName].isVisible = true
+    currentTab = tabName
+end
+
+-- Criar os botões das abas
+local function createTabs()
+    local tabGroup = display.newGroup()
+    scene.view:insert(tabGroup)
+
+    local tabNames = {"chestActivities", "dailyLogin", "ongakuRamen", "achievements", "moneyTree"}
+    local labels = {"Síntese", "Decompor", "Diario", "Sushi", "Conquistas", "Arvore"}
+    local tabs = {}
+
+    local scrollView = widget.newScrollView({
+        x = 250,
+        y = -129, -- Ajustado para ser visível
+        width = 500,
+        height = 90,
+        horizontalScrollDisabled = false,
+        verticalScrollDisabled = true,
+        scrollWidth = #tabNames * 200,
+        scrollHeight = 90,
+        isBounceEnabled = true,
+        hideBackground = true
+    })
+    scene.view:insert(scrollView)
+
+    local startX = 70
+    local spacing = 130
+
+    for i, name in ipairs(tabNames) do
+        local tab = display.newGroup()
+        scrollView:insert(tab)
+
+        local bg = display.newImageRect(tab, "assets/7button/btn_tab_s9_s.png", 132, 82)
+        bg.x, bg.y = startX + (i - 1) * spacing, 45 -- Ajustado para dentro do `scrollView`
+        tab:insert(bg)
+
+        local label = display.newText({
+            parent = tab,
+            text = labels[i],
+            x = bg.x,
+            y = bg.y,
+            font = "assets/7fonts/Textile.ttf",
+            fontSize = 22
+        })
+        tab:insert(label)
+
+        tab.bg = bg
+        tabs[i] = tab
+
+        function tab:tap()
+            if selectedTab then
+                selectedTab.bg.fill = {
+                    type = "image",
+                    filename = "assets/7button/btn_tab_s9_s.png"
+                }
+            end
+
+            bg.fill = {
+                type = "image",
+                filename = "assets/7button/btn_tab_light_s9_s.png"
+            }
+
+            selectedTab = tab
+            updateTabContent(name)
+            return true
+        end
+        tab:addEventListener("tap", tab)
+    end
+
+    return tabGroup, tabs
+end
+
+local function setInitialActiveTab(tabs)
+    if not selectedTab and tabs[1] then
+        selectedTab = tabs[1]
+        selectedTab.bg.fill = {
+            type = "image",
+            filename = "assets/7button/btn_tab_light_s9_s.png"
+        }
+    end
+end
+
+-- Criar a cena
+function scene:create(event)
+    local sceneGroup = self.view
+
+    local background = display.newImageRect(sceneGroup, "assets/7bg/bg_yellow_large.jpg", display.contentWidth,
+        display.contentHeight * 1.44)
+    background.x = display.contentCenterX
+    background.y = display.contentCenterY
+
+    local bgDecoTop = display.newImageRect(sceneGroup, "assets/7bg/bg_deco_top_1.png", 640, 128)
+    bgDecoTop.x = display.contentCenterX
+    bgDecoTop.y = -142
+
+    local backBg = display.newImageRect(sceneGroup, "assets/7bg/bg_deco_top_3.png", 128, 128)
+    backBg.x = display.contentCenterX + 170
+    backBg.y = bgDecoTop.y
+
+    local btnFilter = display.newImageRect(sceneGroup, "assets/7button/btn_help.png", 96, 96)
+    btnFilter.x = display.contentCenterX + 180
+    btnFilter.y = bgDecoTop.y + 10
+
+    local btnBack = display.newImageRect(sceneGroup, "assets/7button/btn_close.png", 96, 96)
+    btnBack.x = display.contentCenterX + 270
+    btnBack.y = bgDecoTop.y + 10
+
+    local function goToHome(event)
+        if event.phase == "ended" then
+            composer.removeScene("router.home")
+            composer.gotoScene("router.home")
+        end
+        return true
+    end
+    btnBack:addEventListener("touch", goToHome)
+
+    local tabGroup, tabs = createTabs()
+    setInitialActiveTab(tabs)
+    updateTabContent("chestActivities")
+end
+
+scene:addEventListener("create", scene)
+return scene

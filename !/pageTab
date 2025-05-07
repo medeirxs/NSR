@@ -1,0 +1,193 @@
+local composer = require("composer")
+local widget = require("widget")
+local navBar = require("components.navBar")
+
+local scene = composer.newScene()
+local tabContents = {
+    synthesize = nil,
+    decompose = nil
+}
+
+local currentTab = nil
+local selectedTab = nil
+
+local function synthesize()
+    local group = display.newGroup()
+
+    local title = display.newText({
+        text = "Sintetizar",
+        x = display.contentCenterX,
+        y = display.contentCenterY,
+        font = native.systemFontBold,
+        fontSize = 28
+    })
+    group:insert(title)
+
+    local myNavBar = navBar.new()
+    group:insert(myNavBar)
+    return group
+end
+
+local function decompose()
+    local group = display.newGroup()
+
+    local title = display.newText({
+        text = "Decompor",
+        x = display.contentCenterX,
+        y = display.contentCenterY,
+        font = native.systemFontBold,
+        fontSize = 28
+    })
+    group:insert(title)
+
+    local myNavBar = navBar.new()
+    group:insert(myNavBar)
+    return group
+end
+
+-- Atualizar o conteúdo da aba selecionada
+local function updateTabContent(tabName)
+    -- Oculta todas as abas antes de exibir a nova
+    for _, group in pairs(tabContents) do
+        if group then
+            group.isVisible = false
+        end
+    end
+
+    -- Se a aba ainda não foi criada, cria agora
+    if not tabContents[tabName] then
+        if tabName == "synthesize" then
+            tabContents[tabName] = synthesize() -- Chama a função e atribui o grupo retornado
+        elseif tabName == "decompose" then
+            tabContents[tabName] = decompose() -- Chama a função e atribui o grupo retornado
+        end
+
+        scene.view:insert(tabContents[tabName]) -- Insere na cena corretamente
+    end
+
+    -- Exibe a aba escolhida
+    tabContents[tabName].isVisible = true
+    currentTab = tabName
+end
+
+-- Criar os botões das abas
+local function createTabs()
+    local tabGroup = display.newGroup()
+    scene.view:insert(tabGroup)
+
+    local tabNames = {"synthesize", "decompose"}
+    local labels = {"Sintese", "Decompor"}
+    local startX = 115
+    local spacing = 210
+
+    for i, name in ipairs(tabNames) do
+        local tab = display.newGroup()
+        tabGroup:insert(tab)
+
+        local bg = display.newImageRect(tab, "assets/7button/btn_tab_s9.png", 236, 82)
+        bg.x, bg.y = startX + (i - 1) * spacing, -128
+        tab:insert(bg)
+
+        local label = display.newText({
+            parent = tab,
+            text = labels[i],
+            x = bg.x,
+            y = bg.y + 5,
+            font = "assets/7fonts/Textile.ttf",
+            fontSize = 22
+        })
+        tab:insert(label)
+
+        tab.bg = bg -- Atribuir a referência ao campo `bg`
+
+        -- Definir a função de toque
+        function tab:tap()
+            if selectedTab then
+                selectedTab.bg.fill = {
+                    type = "image",
+                    filename = "assets/7button/btn_tab_s9.png"
+                }
+            end
+
+            -- Alterar o fundo da aba clicada para o estado ativo
+            bg.fill = {
+                type = "image",
+                filename = "assets/7button/btn_tab_light_s9.png"
+            }
+
+            -- Atualiza a variável de aba selecionada
+            selectedTab = tab
+
+            -- Atualiza o conteúdo da aba
+            updateTabContent(name)
+            return true
+        end
+        tab:addEventListener("tap", tab)
+    end
+
+    -- Retorna o grupo de abas para ser usado em outro lugar
+    return tabGroup
+end
+
+-- Função para setar a aba inicial como ativa
+local function setInitialActiveTab(tabGroup)
+    -- A aba 'cards' deve ser marcada como ativa na criação
+    if not selectedTab then
+        -- Seleciona a aba 'cards' (primeira aba)
+        selectedTab = tabGroup[1]
+        -- Modifica o fundo da aba 'cards' para indicar que está ativa
+        selectedTab.bg.fill = {
+            type = "image",
+            filename = "assets/7button/btn_tab_light_s9.png"
+        }
+    end
+end
+
+-- Criar a cena
+function scene:create(event)
+    local sceneGroup = self.view
+
+    local background = display.newImageRect(sceneGroup, "assets/7bg/bg_yellow_large.jpg", display.contentWidth,
+        display.contentHeight * 1.44)
+    background.x = display.contentCenterX
+    background.y = display.contentCenterY
+
+    local bgDecoTop = display.newImageRect(sceneGroup, "assets/7bg/bg_deco_top_1.png", 640, 128)
+    bgDecoTop.x = display.contentCenterX
+    bgDecoTop.y = -142
+
+    local backBg = display.newImageRect(sceneGroup, "assets/7bg/bg_deco_top_3.png", 128, 128)
+    backBg.x = display.contentCenterX + 170
+    backBg.y = -142
+
+    local btnFilter = display.newImageRect(sceneGroup, "assets/7button/btn_help.png", 96, 96)
+    btnFilter.x = display.contentCenterX + 180
+    btnFilter.y = -133
+
+    local btnBack = display.newImageRect(sceneGroup, "assets/7button/btn_close.png", 96, 96)
+    btnBack.x = display.contentCenterX + 270
+    btnBack.y = -133
+
+    local function goToHome(event)
+        if event.phase == "ended" then -- Garante que a ação ocorre apenas quando o toque termina
+            composer.removeScene("router.home")
+            composer.gotoScene("router.home")
+        end
+        return true -- Previne a propagação do evento
+    end
+
+    -- Adiciona o evento ao botão
+    btnBack:addEventListener("touch", goToHome)
+
+    -- Criar as abas
+    local tabGroup = createTabs()
+
+    -- Define a aba 'cards' como ativa ao iniciar
+    setInitialActiveTab(tabGroup)
+
+    -- Atualiza o conteúdo da aba inicial
+    updateTabContent("synthesize")
+end
+
+scene:addEventListener("create", scene)
+return scene
