@@ -1,4 +1,3 @@
--- components/bandView.lua
 local bandView = {}
 local composer = require("composer")
 local json = require("json")
@@ -141,8 +140,16 @@ function bandView.new(params)
         end
 
         -- compacta formation tirando nils (não usar ipairs aqui)
+        local indices = {}
+        for idx in pairs(formation) do
+            if type(idx) == "number" then
+                table.insert(indices, idx)
+            end
+        end
+        table.sort(indices)
+
         local cleanFormation = {}
-        for idx = 1, #formation do
+        for _, idx in ipairs(indices) do
             local id = formation[idx]
             if id ~= nil then
                 table.insert(cleanFormation, id)
