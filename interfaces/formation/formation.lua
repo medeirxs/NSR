@@ -9,6 +9,9 @@ local topBack = require("components.backTop")
 local navBar = require("components.navBar")
 local textile = require("utils.textile")
 
+local cloudOn = require("utils.cloudOn")
+local cloudOff = require("utils.cloudOff")
+
 local scene = composer.newScene()
 
 -- Guarda o userId atual
@@ -231,6 +234,15 @@ function scene:create(e)
                         card:addEventListener("touch", cardTouch)
                         grp:insert(card);
                         cardImages[i] = card
+                        card:addEventListener("tap", function()
+                            cloudOn.show({
+                                time = 300
+                            })
+                            timer.performWithDelay(300, function()
+                                composer.removeScene("interfaces.formation.selectFormation")
+                                composer.gotoScene("interfaces.formation.selectFormation")
+                            end)
+                        end)
 
                         local rect = display.newRoundedRect(card, 0, -- centro X do card
                         110, -- Y relativo ao card
@@ -349,6 +361,15 @@ function scene:create(e)
         corContorno = {0, 0, 0},
         espessuraContorno = 2
     })
+    changeMember:addEventListener("tap", function()
+        cloudOn.show({
+            time = 300
+        })
+        timer.performWithDelay(300, function()
+            composer.removeScene("interfaces.formation.selectFormation")
+            composer.gotoScene("interfaces.formation.selectFormation")
+        end)
+    end)
 
     local myNavBar = navBar.new()
     grp:insert(myNavBar)
