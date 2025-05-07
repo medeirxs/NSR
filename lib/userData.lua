@@ -1,5 +1,3 @@
--- 📁 lib/userData.lua
-
 local json = require("json")
 local M = {}
 
