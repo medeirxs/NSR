@@ -17,6 +17,68 @@ local cloudOff = require("utils.cloudOff")
 local scene = composer.newScene()
 local MAX_SELECT = 5
 
+local CharacterType = {}
+local function getCardTypeImage(t)
+    if t == "atk" then
+        return "assets/7card/prof_attack.png"
+    elseif t == "cr" then
+        return "assets/7card/prof_heal.png"
+    elseif t == "bal" then
+        return "assets/7card/prof_balance.png"
+    elseif t == "def" then
+        return "assets/7card/prof_defense.png"
+    end
+    return nil
+end
+
+function CharacterType.new(params)
+    local group = display.newGroup()
+    group.x = params.x or display.contentCenterX
+    group.y = params.y or display.contentCenterY
+
+    local iconSize = params.size or 32
+    local headers = {
+        ["apikey"] = supabase.SUPABASE_ANON_KEY,
+        ["Authorization"] = "Bearer " .. supabase.SUPABASE_ANON_KEY
+    }
+    local url = string.format("%s/rest/v1/characters?select=card_type&uuid=eq.%s", supabase.SUPABASE_URL,
+        tostring(params.characterId))
+
+    local function networkListener(event)
+        if event.isError then
+            print("Erro ao buscar tipo de carta:", event.response)
+            if params.callback then
+                params.callback(nil)
+            end
+            return
+        end
+        local data = json.decode(event.response)
+        if data and #data > 0 and data[1].card_type then
+            local imgPath = getCardTypeImage(data[1].card_type)
+            if imgPath then
+                local icon = display.newImageRect(group, imgPath, iconSize, iconSize)
+                icon.x, icon.y = 0, 0
+                if params.callback then
+                    params.callback(icon)
+                end
+            else
+                if params.callback then
+                    params.callback(nil)
+                end
+            end
+        else
+            if params.callback then
+                params.callback(nil)
+            end
+        end
+    end
+
+    network.request(url, "GET", networkListener, {
+        headers = headers
+    })
+    return group
+end
+
 -- helper para checar existência
 local function contains(tbl, val)
     for _, v in ipairs(tbl) do
