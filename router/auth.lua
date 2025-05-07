@@ -2,7 +2,7 @@ local composer = require("composer")
 local json = require("json")
 
 local text = require("utils.textile")
-local auth = require("api.getAuth")
+local auth = require("api.auth")
 
 local scene = composer.newScene()
 
