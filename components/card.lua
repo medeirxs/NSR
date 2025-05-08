@@ -1,5 +1,5 @@
 -- components/card.lua
-local cardN = {}
+local card = {}
 local json = require("json")
 local supabase = require("config.supabase")
 
@@ -47,7 +47,7 @@ end
 -- Declaração da variável kunaiGroup para acesso dentro de updateCardWithCharacterData
 local kunaiGroup
 
-function cardN.new(params)
+function card.new(params)
     local group = display.newGroup()
     group.anchorChildren = true
     group.anchorX = 0.5
@@ -167,4 +167,4 @@ function cardN.new(params)
     return group
 end
 
-return cardN
+return card

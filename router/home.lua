@@ -205,6 +205,12 @@ function scene:create(event)
             composer.removeScene("interfaces.btnChat")
             composer.gotoScene("interfaces.btnChat")
         end)
+        timer.performWithDelay(300, function()
+            cloudOff.show({
+                group = display.getCurrentStage(),
+                time = 600
+            })
+        end)
     end)
 
     local btnMail = display.newImageRect(homeWidget, "assets/7button/btn_mail.png", 78, 76)
@@ -222,6 +228,12 @@ function scene:create(event)
         timer.performWithDelay(300, function()
             composer.removeScene("interfaces.btnKaguya")
             composer.gotoScene("interfaces.btnKaguya")
+        end)
+        timer.performWithDelay(300, function()
+            cloudOff.show({
+                group = display.getCurrentStage(),
+                time = 600
+            })
         end)
     end)
 
@@ -286,6 +298,12 @@ function scene:create(event)
         timer.performWithDelay(300, function()
             composer.removeScene("interfaces.formation.equipment")
             composer.gotoScene("interfaces.formation.equipment")
+        end)
+        timer.performWithDelay(300, function()
+            cloudOff.show({
+                group = display.getCurrentStage(),
+                time = 600
+            })
         end)
     end)
     ----- renameModal --------------------------------------------------------------------------------------------------

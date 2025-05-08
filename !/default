@@ -56,3 +56,19 @@ return component
 -- })
 -- group:insert(component)
 
+-- btnMessage:addEventListener("tap", function()
+--     cloudOn.show({
+--         time = 300
+--     })
+--     timer.performWithDelay(300, function()
+--         composer.removeScene("interfaces.btnChat")
+--         composer.gotoScene("interfaces.btnChat")
+--     end)
+-- end)
+
+-- local bgImg = display.newImageRect(scene.equipGroup, bgPath, 104 * 1.1, 104 * 1.1)
+-- bgImg.x, bgImg.y = pos.x, pos.y
+-- if eq.image and eq.image ~= "" then
+--     local img = display.newImageRect(scene.equipGroup, eq.image, 64 * 1.5, 64 * 1.5)
+--     img.x, img.y = pos.x, pos.y
+-- end

@@ -391,8 +391,20 @@ function scene:create(e)
         espessuraContorno = 2
     })
     tabEquipmentBg:addEventListener("tap", function()
-        composer.removeScene("interfaces.formation.equipment")
-        composer.gotoScene("interfaces.formation.equipment")
+        cloudOn.show({
+            time = 300
+        })
+        timer.performWithDelay(300, function()
+            composer.removeScene("interfaces.formation.equipment")
+            composer.gotoScene("interfaces.formation.equipment")
+        end)
+        timer.performWithDelay(300, function()
+            cloudOff.show({
+                group = display.getCurrentStage(),
+                time = 600
+            })
+        end)
+
     end)
 
     local tabFormationBg = display.newImageRect(grp, "assets/7button/btn_tab_light_s9.png", 236, 82)

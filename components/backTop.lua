@@ -1,5 +1,7 @@
 local textile = require("utils.textile")
 local composer = require("composer")
+local cloudOn = require("utils.cloudOn") -- entrada
+local cloudOff = require("utils.cloudOff") -- saida
 
 local component = {}
 
@@ -29,8 +31,19 @@ function component.new(params)
     local btnBack = display.newImageRect(group, "assets/7button/btn_close.png", 96, 96)
     btnBack.x, btnBack.y = bgDecoTop3.x + 100, bgDecoTop3.y + 9
     btnBack:addEventListener("tap", function()
-        composer.removeScene(func)
-        composer.gotoScene(func)
+        cloudOn.show({
+            time = 300
+        })
+        timer.performWithDelay(300, function()
+            composer.removeScene(func)
+            composer.gotoScene(func)
+        end)
+        timer.performWithDelay(300, function()
+            cloudOff.show({
+                group = display.getCurrentStage(),
+                time = 600
+            })
+        end)
     end)
 
     local btnAsk = display.newImageRect(group, "assets/7button/btn_help.png", 96, 96)

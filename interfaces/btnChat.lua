@@ -169,10 +169,7 @@ function chatBubble.new(params)
 end
 
 function scene:create(event)
-    local cloudOff = require("utils.cloudOff") -- saida
-    cloudOff.show({
-        time = 600
-    })
+
     local sceneGroup = self.view
 
     local data = userDataLib.load() or {}

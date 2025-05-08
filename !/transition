@@ -1,4 +1,3 @@
-
 local cloudOn = require("utils.cloudOn") -- entrada
 cloudOn.show({
     time = 600

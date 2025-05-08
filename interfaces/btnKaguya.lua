@@ -9,10 +9,7 @@ local topBack = require("components.backTop")
 local scene = composer.newScene()
 
 function scene:create(event)
-    local cloudOff = require("utils.cloudOff") -- saida
-    cloudOff.show({
-        time = 600
-    })
+
     local group = self.view
 
     local image = display.newImageRect(group, "assets/7bg/bg_yellow_large.jpg", display.contentWidth,

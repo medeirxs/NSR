@@ -115,7 +115,8 @@ function scene:create(event)
     image.x, image.y = display.contentCenterX, display.contentCenterY
 
     local topBack = topBack.new({
-        title = "Escolher Membro do Time "
+        title = "Escolher Membro do Time ",
+        func = "interfaces.formation.formation"
     })
     group:insert(topBack)
 
