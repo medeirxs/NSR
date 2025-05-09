@@ -239,8 +239,8 @@ function scene:create(e)
                                 time = 300
                             })
                             timer.performWithDelay(300, function()
-                                composer.removeScene("interfaces.formation.selectFormation")
-                                composer.gotoScene("interfaces.formation.selectFormation")
+                                composer.removeScene("interfaces.formation.formationSelect")
+                                composer.gotoScene("interfaces.formation.formationSelect")
                             end)
                         end)
 

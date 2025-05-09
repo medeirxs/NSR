@@ -29,7 +29,6 @@ local function getCardTypeImage(t)
     end
     return nil
 end
-
 function CharacterType.new(params)
     local group = display.newGroup()
     group.x = params.x or display.contentCenterX
