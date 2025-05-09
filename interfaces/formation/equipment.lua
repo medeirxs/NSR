@@ -456,7 +456,7 @@ function scene:show(event)
             })
             local armorText = textile.new({
                 group = self.equipGroup,
-                texto = ((1.000 - stats.armor) * 100) .. '% ',
+                texto = ((stats.armor) * 100) .. '% ',
                 x = display.contentCenterX - 15,
                 y = display.contentCenterY + 72 + 45,
                 tamanho = 21,
