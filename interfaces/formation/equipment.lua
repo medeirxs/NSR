@@ -433,6 +433,16 @@ function scene:show(event)
                 label = "ARMOR",
                 value = stats.armor
             }}
+            local nameText = textile.new({
+                group = self.equipGroup,
+                texto = " " .. stats.name .. " (Nv" .. stats.level .. ") ",
+                x = display.contentCenterX,
+                y = display.contentCenterY + 20,
+                tamanho = 22,
+                corTexto = {1, 1, 1}, -- Amarelo {0.95, 0.86, 0.31}
+                corContorno = {0, 0, 0},
+                espessuraContorno = 2
+            })
             local textHp = textile.new({
                 group = self.equipGroup,
                 texto = stats.hp .. ' ',
