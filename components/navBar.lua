@@ -58,7 +58,7 @@ function navBar.new(options)
         image = "assets/7button/btn_shop.png",
         label = "Loja",
         onPress = function()
-            composer.gotoScene("router.interfaces.gold")
+            -- composer.gotoScene("router.interfaces.gold")
         end,
         buttonX = 480,
         buttonY = nil,

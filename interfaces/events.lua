@@ -1,22 +1,23 @@
+-- events.lua
 local composer = require("composer")
 local widget = require("widget")
 local navBar = require("components.navBar")
 
 local scene = composer.newScene()
+
 local tabContents = {
-    chestActivities = nil,
-    dailyLogin = nil,
-    ongakuRamen = nil,
-    achievements = nil,
-    moneyTree = nil
+    daily = nil,
+    accumulatedGold = nil,
+    consumeGold = nil,
+    trade = nil,
+    reedem = nil
 }
 
 local currentTab = nil
 local selectedTab = nil
 
-local function chestActivities()
+local function daily()
     local group = display.newGroup()
-
     local title = display.newText({
         text = "Sintetizar",
         x = display.contentCenterX,
@@ -25,15 +26,12 @@ local function chestActivities()
         fontSize = 28
     })
     group:insert(title)
-
-    local myNavBar = navBar.new()
-    group:insert(myNavBar)
+    group:insert(navBar.new())
     return group
 end
 
-local function dailyLogin()
+local function accumulatedGold()
     local group = display.newGroup()
-
     local title = display.newText({
         text = "Decompor",
         x = display.contentCenterX,
@@ -42,15 +40,12 @@ local function dailyLogin()
         fontSize = 28
     })
     group:insert(title)
-
-    local myNavBar = navBar.new()
-    group:insert(myNavBar)
+    group:insert(navBar.new())
     return group
 end
 
-local function ongakuRamen()
+local function consumeGold()
     local group = display.newGroup()
-
     local title = display.newText({
         text = "Decompor",
         x = display.contentCenterX,
@@ -59,15 +54,12 @@ local function ongakuRamen()
         fontSize = 28
     })
     group:insert(title)
-
-    local myNavBar = navBar.new()
-    group:insert(myNavBar)
+    group:insert(navBar.new())
     return group
 end
 
-local function achievements()
+local function trade()
     local group = display.newGroup()
-
     local title = display.newText({
         text = "Decompor",
         x = display.contentCenterX,
@@ -76,48 +68,36 @@ local function achievements()
         fontSize = 28
     })
     group:insert(title)
-
-    local myNavBar = navBar.new()
-    group:insert(myNavBar)
+    group:insert(navBar.new())
     return group
 end
 
-local function moneyTree()
+local function reedem()
     local group = display.newGroup()
 
-    local title = display.newText({
-        text = "Decompor",
-        x = display.contentCenterX,
-        y = display.contentCenterY,
-        font = native.systemFontBold,
-        fontSize = 28
-    })
-    group:insert(title)
-
-    local myNavBar = navBar.new()
-    group:insert(myNavBar)
+    group:insert(navBar.new())
     return group
 end
 
--- Atualizar o conteúdo da aba selecionada
+-- Esconde todas as abas e exibe apenas a solicitada
 local function updateTabContent(tabName)
-    for _, group in pairs(tabContents) do
-        if group then
-            group.isVisible = false
+    for _, grp in pairs(tabContents) do
+        if grp then
+            grp.isVisible = false
         end
     end
 
     if not tabContents[tabName] then
-        if tabName == "chestActivities" then
-            tabContents[tabName] = chestActivities()
-        elseif tabName == "dailyLogin" then
-            tabContents[tabName] = dailyLogin()
-        elseif tabName == "ongakuRamen" then
-            tabContents[tabName] = ongakuRamen()
-        elseif tabName == "achievements" then
-            tabContents[tabName] = achievements()
-        elseif tabName == "moneyTree" then
-            tabContents[tabName] = moneyTree()
+        if tabName == "daily" then
+            tabContents[tabName] = daily()
+        elseif tabName == "accumulatedGold" then
+            tabContents[tabName] = accumulatedGold()
+        elseif tabName == "consumeGold" then
+            tabContents[tabName] = consumeGold()
+        elseif tabName == "trade" then
+            tabContents[tabName] = trade()
+        elseif tabName == "reedem" then
+            tabContents[tabName] = reedem()
         end
         scene.view:insert(tabContents[tabName])
     end
@@ -126,66 +106,65 @@ local function updateTabContent(tabName)
     currentTab = tabName
 end
 
--- Criar os botões das abas
+-- Cria os botões de aba usando imagens ao invés de texto
 local function createTabs()
     local tabGroup = display.newGroup()
     scene.view:insert(tabGroup)
 
-    local tabNames = {"chestActivities", "dailyLogin", "ongakuRamen", "achievements", "moneyTree"}
-    local labels = {"Síntese", "Decompor", "Diario", "Sushi", "Conquistas", "Arvore"}
-    local tabs = {}
+    local tabNames = {"daily", "accumulatedGold", "consumeGold", "trade", "reedem"}
+    -- ajuste estes caminhos para suas próprias imagens de ícone
+    local tabIcons = {"assets/7button/btn_act_buy_item.png", "assets/7button/btn_act_buy_item.png",
+                      "assets/7button/btn_act_buy_item.png", "assets/7button/btn_act_buy_item.png",
+                      "assets/7button/reedem_code.png"}
 
     local scrollView = widget.newScrollView({
-        x = 250,
-        y = -129, -- Ajustado para ser visível
-        width = 500,
+        x = 218,
+        y = -129,
+        width = 447,
         height = 90,
+        anchorX = 0,
         horizontalScrollDisabled = false,
         verticalScrollDisabled = true,
         scrollWidth = #tabNames * 200,
-        scrollHeight = 90,
         isBounceEnabled = true,
         hideBackground = true
     })
     scene.view:insert(scrollView)
 
-    local startX = 70
-    local spacing = 130
+    local startX, spacing = 70, 130
+    local tabs = {}
 
     for i, name in ipairs(tabNames) do
         local tab = display.newGroup()
         scrollView:insert(tab)
 
+        -- fundo do botão
         local bg = display.newImageRect(tab, "assets/7button/btn_tab_s9_s.png", 132, 82)
-        bg.x, bg.y = startX + (i - 1) * spacing, 45 -- Ajustado para dentro do `scrollView`
+        bg.x, bg.y = startX + (i - 1) * spacing, 45
         tab:insert(bg)
-
-        local label = display.newText({
-            parent = tab,
-            text = labels[i],
-            x = bg.x,
-            y = bg.y,
-            font = "assets/7fonts/Textile.ttf",
-            fontSize = 22
-        })
-        tab:insert(label)
-
         tab.bg = bg
+
+        -- ícone centralizado
+        local iconSize = 48
+        local icon = display.newImageRect(tab, tabIcons[i], 105, 79)
+        icon.x, icon.y = bg.x, bg.y
+        tab:insert(icon)
+
         tabs[i] = tab
 
         function tab:tap()
+            -- resetar aba anterior
             if selectedTab then
                 selectedTab.bg.fill = {
                     type = "image",
                     filename = "assets/7button/btn_tab_s9_s.png"
                 }
             end
-
+            -- destacar esta aba
             bg.fill = {
                 type = "image",
                 filename = "assets/7button/btn_tab_light_s9_s.png"
             }
-
             selectedTab = tab
             updateTabContent(name)
             return true
@@ -206,30 +185,26 @@ local function setInitialActiveTab(tabs)
     end
 end
 
--- Criar a cena
+-- montagem da cena
 function scene:create(event)
     local sceneGroup = self.view
 
+    -- fundos e decoração
     local background = display.newImageRect(sceneGroup, "assets/7bg/bg_yellow_large.jpg", display.contentWidth,
         display.contentHeight * 1.44)
-    background.x = display.contentCenterX
-    background.y = display.contentCenterY
+    background.x, background.y = display.contentCenterX, display.contentCenterY
 
     local bgDecoTop = display.newImageRect(sceneGroup, "assets/7bg/bg_deco_top_1.png", 640, 128)
-    bgDecoTop.x = display.contentCenterX
-    bgDecoTop.y = -142
+    bgDecoTop.x, bgDecoTop.y = display.contentCenterX, -142
 
     local backBg = display.newImageRect(sceneGroup, "assets/7bg/bg_deco_top_3.png", 128, 128)
-    backBg.x = display.contentCenterX + 170
-    backBg.y = bgDecoTop.y
+    backBg.x, backBg.y = display.contentCenterX + 170, bgDecoTop.y
 
     local btnFilter = display.newImageRect(sceneGroup, "assets/7button/btn_help.png", 96, 96)
-    btnFilter.x = display.contentCenterX + 180
-    btnFilter.y = bgDecoTop.y + 10
+    btnFilter.x, btnFilter.y = display.contentCenterX + 180, bgDecoTop.y + 10
 
     local btnBack = display.newImageRect(sceneGroup, "assets/7button/btn_close.png", 96, 96)
-    btnBack.x = display.contentCenterX + 270
-    btnBack.y = bgDecoTop.y + 10
+    btnBack.x, btnBack.y = display.contentCenterX + 270, bgDecoTop.y + 10
 
     local function goToHome(event)
         if event.phase == "ended" then
@@ -240,9 +215,10 @@ function scene:create(event)
     end
     btnBack:addEventListener("touch", goToHome)
 
+    -- tabs
     local tabGroup, tabs = createTabs()
     setInitialActiveTab(tabs)
-    updateTabContent("chestActivities")
+    updateTabContent("reedem")
 end
 
 scene:addEventListener("create", scene)

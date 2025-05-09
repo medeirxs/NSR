@@ -173,6 +173,41 @@ function cardCell.new(params)
         anchorX = 0
     })
 
+    local function calcularEstrelasVisuais(stars)
+        if stars <= 2 then
+            return 2
+        elseif stars <= 4 then
+            return 3
+        elseif stars <= 7 then
+            return 4
+        elseif stars <= 11 then
+            return 5
+        else
+            return 5 -- valor máximo, caso ultrapasse
+        end
+    end
+
+    local starsCount = calcularEstrelasVisuais(stars)
+    for i = 1, starsCount do
+        local star = display.newImageRect(group, "assets/7misc/misc_star_on.png", 64, 64)
+        star.x = 186 + (i - 1) * 35
+        star.y = bgCell.y + 35
+    end
+
+    local lockIcon = display.newImageRect(group, "assets/7icon/icon_status_lock_gray.png", 34, 34)
+    lockIcon.x, lockIcon.y = bgCell.x + 90, bgCell.y - 70
+
+    local flagIcon = display.newImageRect(group, "assets/7icon/icon_status_inband_gray.png", 34, 34)
+    flagIcon.x, flagIcon.y = lockIcon.x + (30), lockIcon.y
+    local toolIcon = display.newImageRect(group, "assets/7icon/icon_status_weapon_gray.png", 34, 34)
+    toolIcon.x, toolIcon.y = lockIcon.x + (30 * 2), lockIcon.y
+    local mantleIcon = display.newImageRect(group, "assets/7icon/icon_status_armor_gray.png", 34, 34)
+    mantleIcon.x, mantleIcon.y = lockIcon.x + (30 * 3), lockIcon.y
+    local acessoryIcon = display.newImageRect(group, "assets/7icon/icon_status_necklace_gray.png", 34, 34)
+    acessoryIcon.x, acessoryIcon.y = lockIcon.x + (30 * 4), lockIcon.y
+    local mountIcon = display.newImageRect(group, "assets/7icon/icon_status_mount_gray.png", 34, 34)
+    mountIcon.x, mountIcon.y = lockIcon.x + (30 * 5), lockIcon.y
+
     return group
 end
 return cardCell

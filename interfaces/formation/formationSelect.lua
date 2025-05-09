@@ -12,6 +12,7 @@ local navbar = require("components.navBar")
 local textile = require("utils.textile")
 local cloudOn = require("utils.cloudOn")
 local cloudOff = require("utils.cloudOff")
+local cardCell = require("components.cardCell")
 
 local scene = composer.newScene()
 local MAX_SELECT = 5
@@ -182,47 +183,31 @@ function scene:create(event)
             -- css
             for i, rec in ipairs(recs) do
                 local rowY = (i - 1) * 160 + 100
-                -- fundo da célula
-                local cellBg = display.newImageRect(scrollView, "assets/7bg/bg_cell_brown_2.png", 584, 132)
-                cellBg.x = scrollView.contentWidth * 0.5
-                cellBg.y = rowY
-                scrollView:insert(cellBg)
 
-                -- Card
-                local card = cardS.new({
-                    x = 40,
-                    y = rowY - 10,
+                local cardCell = cardCell.new({
+                    x = scrollView.contentWidth * 0.5,
+                    y = rowY,
                     characterId = rec.characterId,
+                    name = rec.name,
                     stars = rec.stars,
-                    scaleFactor = 0.9
-
+                    level = rec.level,
+                    hp = rec.hp,
+                    atk = rec.atk
                 })
-                scrollView:insert(card)
-                card.anchorX = 0
-
-                local typeIconGroup = CharacterType.new {
-                    x = card.x + 140,
-                    y = rowY - 40,
-                    characterId = rec.characterId,
-                    size = 42,
-                    callback = function(icon)
-                    end
-                }
-                scrollView:insert(typeIconGroup)
+                scrollView:insert(cardCell)
 
                 local isSel = contains(scene.selectedIDs, rec.id)
                 local cbSel = display.newImageRect("assets/7misc/misc_check_box_selected.png", 32 * 2.5, 32 * 2.5)
                 local cbUns = display.newImageRect("assets/7misc/misc_check_box_unselected.png", 32 * 2.5, 32 * 2.5)
-                cbSel.x = card.x + 520
-                cbSel.y = card.y - card.height * -0.2
-                cbUns.x = cbSel.x + 0.5
+                cbSel.x = 40 + 520
+                cbSel.y = rowY + 10
+                cbUns.x = cbSel.x
                 cbUns.y = cbSel.y
                 cbSel.isVisible = isSel
                 cbUns.isVisible = not isSel
                 scrollView:insert(cbUns)
                 scrollView:insert(cbSel)
 
-                -- toggle visibility e atualizar lista
                 local function toggle()
                     if cbSel.isVisible then
                         -- desmarcar
@@ -248,78 +233,7 @@ function scene:create(event)
                 end
                 cbSel:addEventListener("tap", toggle)
                 cbUns:addEventListener("tap", toggle)
-                cellBg:addEventListener("tap", toggle)
-
-                local nameText = textile.new({
-                    texto = rec.name .. " " or "",
-                    x = 210,
-                    y = rowY - 40,
-                    tamanho = 24,
-                    corTexto = {1, 1, 1}, -- Amarelo {0.95, 0.86, 0.31}
-                    corContorno = {0, 0, 0},
-                    espessuraContorno = 2,
-                    anchorX = 0
-                })
-                scrollView:insert(nameText)
-
-                local st = rec.stars or 2
-                local lvl = rec.level or 1
-                local bgColor
-                if st == 2 then
-                    bgColor = {0.5, 0.5, 0.5} -- cinza
-                elseif st <= 4 then
-                    bgColor = {0, 1, 0} -- verde
-                elseif st <= 7 then
-                    bgColor = {0, 0, 1} -- azul
-                elseif st <= 11 then
-                    bgColor = {0.5, 0, 0.5} -- roxo
-                else
-                    bgColor = {1, 1, 1} -- branco padrão
-                end
-
-                local rect = display.newRoundedRect(card, 0, 66, 105, 24, 20)
-                rect:setFillColor(unpack(bgColor))
-
-                local levelText = textile.new({
-                    group = card,
-                    texto = " Nv" .. lvl .. " ",
-                    x = rect.x,
-                    y = rect.y,
-                    tamanho = 20,
-                    corTexto = {1, 1, 1},
-                    corContorno = {0, 0, 0},
-                    espessuraContorno = 2
-                })
-
-                local hpIcon = display.newImageRect(card, "assets/7icon/icon_hp.png", 48, 48)
-                hpIcon.x, hpIcon.y = 85, 25
-
-                local hpText = textile.new({
-                    group = card,
-                    texto = " " .. rec.hp .. " " or " " .. 1 .. " ",
-                    x = hpIcon.x + 15,
-                    y = hpIcon.y + 1,
-                    tamanho = 22,
-                    corTexto = {1, 1, 1},
-                    corContorno = {0, 0, 0},
-                    espessuraContorno = 2,
-                    anchorX = 0
-                })
-
-                local atkIcon = display.newImageRect(card, "assets/7icon/icon_atk.png", 48, 48)
-                atkIcon.x, atkIcon.y = 260, 25
-
-                local atkText = textile.new({
-                    group = card,
-                    texto = " " .. rec.atk .. " " or " " .. 1 .. " ",
-                    x = atkIcon.x + 15,
-                    y = atkIcon.y + 1,
-                    tamanho = 22,
-                    corTexto = {1, 1, 1},
-                    corContorno = {0, 0, 0},
-                    espessuraContorno = 2,
-                    anchorX = 0
-                })
+                cardCell:addEventListener("tap", toggle)
 
             end
 

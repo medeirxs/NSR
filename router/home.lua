@@ -286,8 +286,8 @@ function scene:create(event)
 
     ----- scrollButtons ------------------------------------------------------------------------------------------------
     local equipment = scrollButton.new({
-        x = display.contentCenterX,
-        y = display.contentCenterY,
+        x = display.contentCenterX + 140,
+        y = display.contentCenterY - 110,
         title = "Equipamento"
     })
     group:insert(equipment)
@@ -298,6 +298,28 @@ function scene:create(event)
         timer.performWithDelay(300, function()
             composer.removeScene("interfaces.formation.equipment")
             composer.gotoScene("interfaces.formation.equipment")
+        end)
+        timer.performWithDelay(300, function()
+            cloudOff.show({
+                group = display.getCurrentStage(),
+                time = 600
+            })
+        end)
+    end)
+
+    local backpack = scrollButton.new({
+        x = display.contentCenterX - 150,
+        y = display.contentCenterY - 110,
+        title = "Mochila"
+    })
+    group:insert(backpack)
+    backpack:addEventListener("tap", function()
+        cloudOn.show({
+            time = 300
+        })
+        timer.performWithDelay(300, function()
+            composer.removeScene("interfaces.formation")
+            composer.gotoScene("interfaces.formation")
         end)
         timer.performWithDelay(300, function()
             cloudOff.show({
