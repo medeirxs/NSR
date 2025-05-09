@@ -318,8 +318,8 @@ function scene:create(event)
             time = 300
         })
         timer.performWithDelay(300, function()
-            composer.removeScene("interfaces.formation")
-            composer.gotoScene("interfaces.formation")
+            composer.removeScene("interfaces.backpack")
+            composer.gotoScene("interfaces.backpack")
         end)
         timer.performWithDelay(300, function()
             cloudOff.show({

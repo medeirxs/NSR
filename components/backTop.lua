@@ -11,13 +11,15 @@ function component.new(params)
     local func = params.func or "router.home"
     local params = params
 
-    local image = display.newImageRect(group, "assets/7bg/bg_deco_top_1.png", display.contentWidth, 128)
-    image.x, image.y = display.contentCenterX, -150
+    local bgDecoTop = display.newImageRect(group, "assets/7bg/bg_deco_top_1.png", 640, 128)
+    bgDecoTop.x = display.contentCenterX
+    bgDecoTop.y = -142
+
     local text = textile.new({
         group = group,
         texto = title,
         x = 20,
-        y = image.y + 15,
+        y = bgDecoTop.y + 15,
         tamanho = 24,
         corTexto = {1, 1, 1}, -- Amarelo {0.95, 0.86, 0.31}
         corContorno = {0, 0, 0},
@@ -25,11 +27,17 @@ function component.new(params)
         anchorX = 0
     })
 
-    local bgDecoTop3 = display.newImageRect(group, "assets/7bg/bg_deco_top_3.png", 128, 128)
-    bgDecoTop3.x, bgDecoTop3.y = display.contentWidth - 150, -150
+    local backBg = display.newImageRect(group, "assets/7bg/bg_deco_top_3.png", 128, 128)
+    backBg.x = display.contentCenterX + 170
+    backBg.y = -142
+
+    local btnFilter = display.newImageRect(group, "assets/7button/btn_help.png", 96, 96)
+    btnFilter.x = display.contentCenterX + 180
+    btnFilter.y = -133
 
     local btnBack = display.newImageRect(group, "assets/7button/btn_close.png", 96, 96)
-    btnBack.x, btnBack.y = bgDecoTop3.x + 100, bgDecoTop3.y + 9
+    btnBack.x = display.contentCenterX + 270
+    btnBack.y = -133
     btnBack:addEventListener("tap", function()
         cloudOn.show({
             time = 300
@@ -45,9 +53,6 @@ function component.new(params)
             })
         end)
     end)
-
-    local btnAsk = display.newImageRect(group, "assets/7button/btn_help.png", 96, 96)
-    btnAsk.x, btnAsk.y = bgDecoTop3.x + 10, bgDecoTop3.y + 9
 
     return group
 end

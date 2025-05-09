@@ -10,6 +10,7 @@ function itemCell.new(params)
     local sprite = params.sprite
     local name = params.name
     local stars = params.stars or 5
+    local search = params.search or false
     local params = params.params
 
     local bgCell = display.newImageRect(group, "assets/7bg/bg_cell_brown_2.png", 584, 132)
@@ -18,8 +19,20 @@ function itemCell.new(params)
     local image = display.newImageRect(group, sprite, 104, 104)
     image.x, image.y = bgCell.x - 220, bgCell.y - 25
 
+    local bgColor
+    if stars == 2 then
+        bgColor = {0.5, 0.5, 0.5} -- cinza
+    elseif stars == 4 then
+        bgColor = {0, 0, 1} -- azul
+    elseif stars == 5 then
+        bgColor = {0.5, 0, 0.5} -- roxo
+    elseif stars == 6 then
+        bgColor = {0.992, 0.4627, 0.0} -- roxo
+    else
+        bgColor = {1, 1, 1} -- branco padrão
+    end
     local rect = display.newRoundedRect(group, image.x, image.y + 69, 105, 24, 20)
-    rect:setFillColor(0.5, 0, 0.5)
+    rect:setFillColor(unpack(bgColor))
 
     local text = textile.new({
         group = group,
@@ -96,6 +109,13 @@ function itemCell.new(params)
     acessoryIcon.x, acessoryIcon.y = lockIcon.x + (30 * 4), lockIcon.y
     local mountIcon = display.newImageRect(group, "assets/7icon/icon_status_mount_gray.png", 34, 34)
     mountIcon.x, mountIcon.y = lockIcon.x + (30 * 5), lockIcon.y
+
+    if search then
+        local btnAdd = display.newImageRect(group, "assets/7button/btn_search.png", 34 * 2.7, 34 * 2.7)
+        btnAdd.x, btnAdd.y = bgCell.x + 235, bgCell.y
+        group:insert(btnAdd)
+
+    end
 
     return group
 

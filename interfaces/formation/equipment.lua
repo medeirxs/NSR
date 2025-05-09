@@ -269,7 +269,7 @@ function scene:create(event)
     group:insert(topBack)
 
     local tabEquipmentBg = display.newImageRect(group, "assets/7button/btn_tab_light_s9.png", 236, 82)
-    tabEquipmentBg.x, tabEquipmentBg.y = 330, -137
+    tabEquipmentBg.x, tabEquipmentBg.y = 330, -128
     local changeMemberText = textile.new({
         group = group,
         texto = " Equipamento ",
@@ -282,7 +282,7 @@ function scene:create(event)
     })
 
     local tabFormationBg = display.newImageRect(group, "assets/7button/btn_tab_s9.png", 236, 82)
-    tabFormationBg.x, tabFormationBg.y = 110, -137
+    tabFormationBg.x, tabFormationBg.y = 110, -128
     local changeMemberText = textile.new({
         group = group,
         texto = " Grupo Pequeno ",

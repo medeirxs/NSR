@@ -169,7 +169,7 @@ function scene:create(event)
             local rowHeight = 140
             local padding = 20
             local scrollView = widget.newScrollView({
-                top = -100,
+                top = -80,
                 left = 0,
                 width = display.contentWidth,
                 height = 1200,

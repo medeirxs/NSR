@@ -79,6 +79,8 @@ function cardCell.new(params)
     local hp = params.hp or 1
     local atk = params.atk or 1
     local name = params.name or "Ninja"
+    local search = params.search or false
+    local searchFunc = params.searchFunc or ""
     local params = params.params
 
     local bgCell = display.newImageRect(group, "assets/7bg/bg_cell_brown_2.png", 584, 132)
@@ -207,6 +209,13 @@ function cardCell.new(params)
     acessoryIcon.x, acessoryIcon.y = lockIcon.x + (30 * 4), lockIcon.y
     local mountIcon = display.newImageRect(group, "assets/7icon/icon_status_mount_gray.png", 34, 34)
     mountIcon.x, mountIcon.y = lockIcon.x + (30 * 5), lockIcon.y
+
+    if search then
+        local btnAdd = display.newImageRect(group, "assets/7button/btn_search.png", 34 * 2.7, 34 * 2.7)
+        btnAdd.x, btnAdd.y = bgCell.x + 235, bgCell.y
+        group:insert(btnAdd)
+
+    end
 
     return group
 end
