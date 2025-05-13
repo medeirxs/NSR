@@ -25,6 +25,18 @@ local starRequirements = {
 
 }
 
+local starLevelCap = {
+    [2] = 20,
+    [3] = 30,
+    [4] = 40,
+    [5] = 60,
+    [6] = 70,
+    [7] = 80,
+    [8] = 100,
+    [9] = 110,
+    [10] = 120
+}
+
 function scene:create(event)
     local sceneGroup = self.view
 
@@ -177,8 +189,9 @@ function scene:show(event)
             }
 
             -- 2) Busca characterId e stars atuais
-            local getCharUrl = string.format("%s/rest/v1/user_characters?select=characterId,stars&limit=1&id=eq.%s",
-                supa.SUPABASE_URL, recordId)
+            local getCharUrl = string.format(
+                "%s/rest/v1/user_characters?select=characterId,stars,level&limit=1&id=eq.%s", supa.SUPABASE_URL,
+                recordId)
             network.request(getCharUrl, "GET", function(evt)
                 if evt.isError then
                     native.showAlert("Erro", "Não foi possível ler personagem", {"OK"})
@@ -191,7 +204,15 @@ function scene:show(event)
                 end
 
                 local currentStars = d.stars or 0
+                local currentLevel = d.level or 0
                 local charUuid = d.characterId
+
+                local requiredLevel = starLevelCap[currentStars]
+                if requiredLevel and currentLevel < requiredLevel then
+                    native.showAlert("Aviso", "Para evoluir de " .. currentStars .. "→" .. (currentStars + 1) ..
+                        " stars, o personagem deve estar pelo menos no nível " .. requiredLevel, {"OK"})
+                    return
+                end
 
                 -- CASE 1: Stars 2→3, 3→4, 4→5 via itens
                 if currentStars >= 2 and currentStars < 8 then
