@@ -125,26 +125,99 @@ function scene:create(event)
 
     local energyBg = display.newImageRect(group, "assets/7icon/icon_energy.png", 63 / 1.35, 62 / 1.35)
     energyBg.x, energyBg.y = 30, bgMainUserInfo.y + 40
-    energyBar = EnergyBar.new({
+    -- energyBar = EnergyBar.new({
+    --     group = group,
+    --     x = nameText.x + 157, -- ajuste conforme precisar
+    --     y = bgMainUserInfo.y + 48, -- ajuste conforme precisar
+    --     width = 195,
+    --     height = 8,
+    --     maxEnergy = 120
+    -- })
+    -- energyText = textile.new({
+    --     group = group,
+    --     texto = "",
+    --     x = nameText.x + 60,
+    --     y = bgMainUserInfo.y + 20,
+    --     tamanho = 20,
+    --     corTexto = {1, 1, 1}, -- Amarelo {0.95, 0.86, 0.31}
+    --     corContorno = {0, 0, 0},
+    --     espessuraContorno = 2,
+    --     anchorX = 0,
+    --     anchorY = 0
+    -- })
+
+    local function getTimeToNextCron()
+        local now = os.date("*t")
+        -- próxima “janela” de 6 em 6 minutos
+        local nextInterval = math.floor(now.min / 6) + 1
+        local nextMinuteMark = nextInterval * 6
+        -- quantos minutos faltam
+        local deltaMin = nextMinuteMark - now.min
+        -- segundos restantes
+        local secs = deltaMin * 60 - now.sec
+        if secs < 0 then
+            secs = 0
+        end
+        return secs
+    end
+
+    local function formatMMSS(secs)
+        local m = math.floor(secs / 60)
+        local s = secs % 60
+        return string.format("%02d:%02d", m, s)
+    end
+
+    local energy = 0
+
+    local energyBar = EnergyBar.new({
         group = group,
-        x = nameText.x + 157, -- ajuste conforme precisar
-        y = bgMainUserInfo.y + 48, -- ajuste conforme precisar
+        x = nameText.x + 157,
+        y = bgMainUserInfo.y + 48,
         width = 195,
         height = 8,
         maxEnergy = 120
     })
-    energyText = textile.new({
+    local energyText = textile.new({
         group = group,
-        texto = "",
+        texto = "0/120    00:00",
         x = nameText.x + 60,
         y = bgMainUserInfo.y + 20,
         tamanho = 20,
-        corTexto = {1, 1, 1}, -- Amarelo {0.95, 0.86, 0.31}
+        corTexto = {1, 1, 1},
         corContorno = {0, 0, 0},
         espessuraContorno = 2,
         anchorX = 0,
         anchorY = 0
     })
+
+    local function updateEnergy()
+        getUsers.fetch(userId, serverId, function(record, err)
+            if err then
+                native.showAlert("Erro", err, {"OK"})
+                return
+            end
+            energy = record.energy or energy
+            energyBar:setEnergy(energy)
+            -- já atualiza o texto imediato para refletir o novo valor
+            local secsLeft = getTimeToNextCron()
+            energyText:setText(string.format("%d/120      %s ", energy, formatMMSS(secsLeft)))
+        end)
+    end
+
+    updateEnergy()
+
+    timer.performWithDelay(1000, function()
+        local secsLeft = getTimeToNextCron()
+        energyText:setText(string.format("%d/120      %s ", energy, formatMMSS(secsLeft)))
+    end, 0)
+
+    local initialDelay = getTimeToNextCron() * 1000
+    timer.performWithDelay(initialDelay, function()
+        -- faz o primeiro fetch logo que o cron rodar
+        updateEnergy()
+        -- e agenda fetch a cada 6 minutos eternamente
+        timer.performWithDelay(6 * 60 * 1000, updateEnergy, 0)
+    end)
 
     local silverBg = display.newImageRect(group, "assets/7icon/icon_coin.png", 42 * 1.15, 42 * 1.15)
     silverBg.x, silverBg.y = display.contentWidth - 230, bgMainUserInfo.y + 35
@@ -416,8 +489,8 @@ function scene:create(event)
 
         -- nameText:setText(record.name .. " " or "")
         -- levelText:setText(tostring(record.level))
-        energyText:setText(tostring(record.energy) .. "/120 ")
-        energyBar:setEnergy(record.energy or 0)
+        -- energyText:setText(tostring(record.energy) .. "/120 ")
+        -- energyBar:setEnergy(record.energy or 0)
         silverText:setText(tostring(record.silver) .. " ")
         goldText:setText(tostring(record.gold) .. " ")
 

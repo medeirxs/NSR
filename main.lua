@@ -16,7 +16,7 @@ end
 local data = userData.load()
 
 if data and data.id and data.server then
-    composer.gotoScene("router.home", { -- "router.home"
+    composer.gotoScene("interfaces.growing.improve", {
         --     effect = "fade",
         time = 1
     })

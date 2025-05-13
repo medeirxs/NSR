@@ -53,7 +53,6 @@ function M.fetch(userId, serverId, callback)
     })
 end
 
--- busca formação do usuário na tabela user_formation
 function M.fetchFormation(userId, callback)
     local headers = {
         ["apikey"] = config.SUPABASE_ANON_KEY,

@@ -26,8 +26,8 @@ function navBar.new(options)
         image = "assets/7button/btn_campaign.png",
         label = "Jornada",
         onPress = function()
-            -- composer.removeScene("router.main.campaignMain") -- Remove a cena para que ela seja recriada
-            -- composer.gotoScene("router.main.campaignMain")
+            composer.removeScene("interfaces.campaign") -- Remove a cena para que ela seja recriada
+            composer.gotoScene("interfaces.campaign")
         end,
         buttonX = 160,
         buttonY = nil,

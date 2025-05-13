@@ -45,7 +45,7 @@ local function getSlotPosition(i)
 
     -- Espaços extras entre colunas:
     local gap12 = 4 -- espaço extra entre colunas 1 e 2 (slots 1↔2 e 4↔5)
-    local gap23 = 4 -- espaço extra entre colunas 2 e 3 (slots 2↔3 e 5↔6)
+    local gap23 = 6 -- espaço extra entre colunas 2 e 3 (slots 2↔3 e 5↔6)
 
     -- Deslocamento X adicional conforme a coluna
     local extraX = 0
@@ -79,7 +79,7 @@ local function repositionCards()
         local px, py = getSlotPosition(i)
         if cardImages[i] then
             cardImages[i].x = px - 30
-            cardImages[i].y = py - 27
+            cardImages[i].y = py - 12
             cardImages[i].slotIndex = i
         end
     end
@@ -225,7 +225,7 @@ function scene:create(e)
 
                         local card = cardN.new({
                             x = x - 30,
-                            y = y,
+                            y = y + 15,
                             characterId = cu,
                             stars = st,
                             scaleFactor = 0.8

@@ -73,6 +73,32 @@ function scene:create(event)
         end)
     end)
 
+    local tabEquipmentBg = display.newImageRect(sceneGroup, "assets/7button/btn_tab_s9.png", 236, 82)
+    tabEquipmentBg.x, tabEquipmentBg.y = 330, -128
+    local changeMemberText = textile.new({
+        group = sceneGroup,
+        texto = " Destino ",
+        x = tabEquipmentBg.x,
+        y = tabEquipmentBg.y + 5,
+        tamanho = 22,
+        corTexto = {0.6, 0.6, 0.6}, -- Amarelo {0.95, 0.86, 0.31}
+        corContorno = {0, 0, 0},
+        espessuraContorno = 2
+    })
+
+    local tabFormationBg = display.newImageRect(sceneGroup, "assets/7button/btn_tab_light_s9.png", 236, 82)
+    tabFormationBg.x, tabFormationBg.y = 110, -128
+    local changeMemberText = textile.new({
+        group = sceneGroup,
+        texto = " Atributos ",
+        x = tabFormationBg.x,
+        y = tabFormationBg.y + 5,
+        tamanho = 22,
+        corTexto = {1}, -- Amarelo {0.95, 0.86, 0.31}
+        corContorno = {0, 0, 0},
+        espessuraContorno = 2
+    })
+
     -- placeholders de UI
     local cardDetail = display.newImageRect(sceneGroup, "assets/7bg/bg_card_detail_property.png", 588, 311)
     cardDetail.x, cardDetail.y = display.contentCenterX, 90
@@ -80,7 +106,7 @@ function scene:create(event)
     cardInfo.x, cardInfo.y = display.contentCenterX, display.contentCenterY + 70
 
     local abBg = display.newImageRect(sceneGroup, "assets/7textbg/tbg_brown_s9_l.png", 380 * 1.2, 40 * 1.2)
-    abBg.x, abBg.y = cardInfo.x, cardInfo.y - 225
+    abBg.x, abBg.y = cardInfo.x, cardInfo.y - 215
     local abTitle = textile.new({
         group = sceneGroup,
         texto = "Habilidade Comum ",
@@ -94,12 +120,27 @@ function scene:create(event)
     })
 
     local spBg = display.newImageRect(sceneGroup, "assets/7textbg/tbg_brown_s9_l.png", 380 * 1.2, 40 * 1.2)
-    spBg.x, spBg.y = cardInfo.x, cardInfo.y - 50
+    spBg.x, spBg.y = cardInfo.x, cardInfo.y - 70
     local abTitle = textile.new({
         group = sceneGroup,
         texto = "Habilidade Especial ",
         x = spBg.x - 210,
         y = spBg.y - 26,
+        tamanho = 18,
+        corTexto = {0.95, 0.86, 0.31}, -- Amarelo {0.95, 0.86, 0.31}
+        corContorno = {0, 0, 0},
+        espessuraContorno = 2,
+        anchorX = 0
+    })
+
+    local pasiveBg = display.newImageRect(sceneGroup, "assets/7textbg/tbg_black_s9_12.png", 380 * 1.2, 120)
+    pasiveBg.x, pasiveBg.y = cardInfo.x, cardInfo.y - 50 + 30 + 213
+    pasiveBg.alpha = 0.3
+    local abTitle = textile.new({
+        group = sceneGroup,
+        texto = "Passiva ",
+        x = pasiveBg.x - 210,
+        y = pasiveBg.y - 63,
         tamanho = 18,
         corTexto = {0.95, 0.86, 0.31}, -- Amarelo {0.95, 0.86, 0.31}
         corContorno = {0, 0, 0},

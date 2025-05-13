@@ -9,6 +9,7 @@ function component.new(params)
     local group = display.newGroup()
     local title = params.title or " "
     local func = params.func or "router.home"
+    local isntAsk = params.isntAsk or false
     local params = params
 
     local bgDecoTop = display.newImageRect(group, "assets/7bg/bg_deco_top_1.png", 640, 128)

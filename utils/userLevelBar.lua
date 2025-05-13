@@ -2,7 +2,6 @@ local component = {}
 local getUsers = require("api.getUsers")
 local textile = require("utils.textile")
 
--- Tabela de thresholds de XP para cada nível
 local xpThresholds = {
     [1] = 0,
     [2] = 3,
@@ -195,7 +194,6 @@ local function getLevelFromXp(xp)
     return lvl
 end
 
--- Retorna nível baseado no XP
 local function calculateLevel(xp)
     local level = 1
     for lvl, threshold in ipairs(xpThresholds) do
