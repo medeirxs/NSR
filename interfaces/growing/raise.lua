@@ -20,7 +20,9 @@ local starRequirements = {
            "7b5c85fe-c11d-4e6d-8765-94dc39850e85"},
     [4] = {"2b70ab29-4c4d-4efa-9903-2207fb16a82c", "8bf99e1b-c655-47e4-8b3f-5ef778c995b7",
            "17603f91-cabc-4d09-8430-1b189066e8a6", "3c2b103f-2b41-4347-8ea2-cf79aeef220b",
-           "88554fbd-ea57-4909-9c67-b370c6d7fb89"}
+           "88554fbd-ea57-4909-9c67-b370c6d7fb89"},
+    [7] = {"83749125-dd27-4c01-93e2-49ae2b5de364"}
+
 }
 
 function scene:create(event)
@@ -174,7 +176,7 @@ function scene:show(event)
                 ["Authorization"] = "Bearer " .. supa.SUPABASE_ANON_KEY
             }
 
-            -- 2) Busca stars atuais e characterId
+            -- 2) Busca characterId e stars atuais
             local getCharUrl = string.format("%s/rest/v1/user_characters?select=characterId,stars&limit=1&id=eq.%s",
                 supa.SUPABASE_URL, recordId)
             network.request(getCharUrl, "GET", function(evt)
@@ -191,7 +193,8 @@ function scene:show(event)
                 local currentStars = d.stars or 0
                 local charUuid = d.characterId
 
-                if currentStars >= 2 and currentStars < 5 then
+                -- CASE 1: Stars 2→3, 3→4, 4→5 via itens
+                if currentStars >= 2 and currentStars < 8 then
                     local req = starRequirements[currentStars]
                     -- 3) Busca inventário do usuário
                     local fetchItemsUrl = string.format("%s/rest/v1/user_items?userId=eq.%s&select=itemId,quantity,id",
@@ -251,10 +254,8 @@ function scene:show(event)
                         headers = headers
                     })
 
-                end
-
-                -- Stars 5→6: consome 1 outro personagem stars=5
-                if currentStars == 5 then
+                    -- CASE 2: Stars 5→6 via consumo de 1 personagem stars=5
+                elseif currentStars == 5 then
                     local fetchUrl = string.format(
                         "%s/rest/v1/user_characters?select=id&characterId=eq.%s&stars=eq.5&id=neq.%s",
                         supa.SUPABASE_URL, charUuid, recordId)
@@ -268,38 +269,38 @@ function scene:show(event)
                             native.showAlert("Aviso", "Você precisa de mais 1 personagem Stars 5", {"OK"})
                             return
                         end
-                        -- deleta o primeiro encontrado
+                        -- 4) Deleta 1 personagem
                         local otherId = recs[1].id
-                        local delUrl = string.format("%s/rest/v1/user_characters?id=eq.%s", supa.SUPABASE_URL, otherId)
-                        network.request(delUrl, "DELETE", function(pd)
-                            if pd.isError then
-                                native.showAlert("Erro", "Falha ao consumir personagem", {"OK"})
-                                return
-                            end
-                            -- evolui o selecionado
-                            local patchUrl = string.format("%s/rest/v1/user_characters?id=eq.%s", supa.SUPABASE_URL,
-                                recordId)
-                            network.request(patchUrl, "PATCH", function(pp)
-                                if pp.isError then
-                                    native.showAlert("Erro", "Falha ao evoluir stars", {"OK"})
+                        network.request(
+                            string.format("%s/rest/v1/user_characters?id=eq.%s", supa.SUPABASE_URL, otherId), "DELETE",
+                            function(pd)
+                                if pd.isError then
+                                    native.showAlert("Erro", "Falha ao consumir personagem", {"OK"})
                                     return
                                 end
-                                native.showAlert("Sucesso", "Stars evoluídas para 6!", {"OK"})
-                                composer.reloadScene()
-                            end, {
-                                headers = headers,
-                                body = json.encode({
-                                    stars = 6
+                                -- 5) Evolui o selecionado
+                                network.request(string.format("%s/rest/v1/user_characters?id=eq.%s", supa.SUPABASE_URL,
+                                    recordId), "PATCH", function(pp)
+                                    if pp.isError then
+                                        native.showAlert("Erro", "Falha ao evoluir stars", {"OK"})
+                                        return
+                                    end
+                                    native.showAlert("Sucesso", "Stars evoluídas para 6!", {"OK"})
+                                    composer.reloadScene()
+                                end, {
+                                    headers = headers,
+                                    body = json.encode({
+                                        stars = 6
+                                    })
                                 })
+                            end, {
+                                headers = headers
                             })
-                        end, {
-                            headers = headers
-                        })
                     end, {
                         headers = headers
                     })
 
-                    -- Stars 6→7: consome 2 outros personagens stars=5
+                    -- CASE 3: Stars 6→7 via consumo de 2 personagens stars=5
                 elseif currentStars == 6 then
                     local fetchUrl = string.format(
                         "%s/rest/v1/user_characters?select=id&characterId=eq.%s&stars=eq.5&id=neq.%s",
@@ -314,23 +315,17 @@ function scene:show(event)
                             native.showAlert("Aviso", "Você precisa de 2 personagens Stars 5", {"OK"})
                             return
                         end
-                        -- deleta os dois primeiros encontrados
+                        -- 4) Deleta os dois primeiros
                         local deleted = 0
                         for i = 1, 2 do
                             local otherId = recs[i].id
-                            local delUrl = string.format("%s/rest/v1/user_characters?id=eq.%s", supa.SUPABASE_URL,
-                                otherId)
-                            network.request(delUrl, "DELETE", function(pd)
-                                if pd.isError then
-                                    native.showAlert("Erro", "Falha ao consumir personagem", {"OK"})
-                                    return
-                                end
+                            network.request(string.format("%s/rest/v1/user_characters?id=eq.%s", supa.SUPABASE_URL,
+                                otherId), "DELETE", function(pd)
                                 deleted = deleted + 1
                                 if deleted == 2 then
-                                    -- evolui o selecionado
-                                    local patchUrl = string.format("%s/rest/v1/user_characters?id=eq.%s",
-                                        supa.SUPABASE_URL, recordId)
-                                    network.request(patchUrl, "PATCH", function(pp)
+                                    -- 5) Evolui o selecionado
+                                    network.request(string.format("%s/rest/v1/user_characters?id=eq.%s",
+                                        supa.SUPABASE_URL, recordId), "PATCH", function(pp)
                                         if pp.isError then
                                             native.showAlert("Erro", "Falha ao evoluir stars", {"OK"})
                                             return
@@ -351,10 +346,113 @@ function scene:show(event)
                     end, {
                         headers = headers
                     })
+                    -- Stars 8→9: consome 1 outro personagem stars=8
+                elseif currentStars == 8 then
+                    local fetchUrl = string.format(
+                        "%s/rest/v1/user_characters?select=id&characterId=eq.%s&stars=eq.8&id=neq.%s",
+                        supa.SUPABASE_URL, charUuid, recordId)
+                    network.request(fetchUrl, "GET", function(fe)
+                        local recs = json.decode(fe.response) or {}
+                        if #recs < 1 then
+                            native.showAlert("Aviso", "Precisa de 1 personagem Stars 8", {"OK"})
+                            return
+                        end
+                        local otherId = recs[1].id
+                        network.request(
+                            string.format("%s/rest/v1/user_characters?id=eq.%s", supa.SUPABASE_URL, otherId), "DELETE",
+                            function(pd)
+                                if pd.isError then
+                                    return
+                                end
+                                -- evolui para 9
+                                network.request(string.format("%s/rest/v1/user_characters?id=eq.%s", supa.SUPABASE_URL,
+                                    recordId), "PATCH", function(pp)
+                                    composer.reloadScene()
+                                end, {
+                                    headers = headers,
+                                    body = json.encode({
+                                        stars = 9
+                                    })
+                                })
+                            end, {
+                                headers = headers
+                            })
+                    end, {
+                        headers = headers
+                    })
+
+                    -- Stars 9→10: consome 2 personagens stars=8
+                elseif currentStars == 9 then
+                    local fetchUrl = string.format(
+                        "%s/rest/v1/user_characters?select=id&characterId=eq.%s&stars=eq.8&id=neq.%s",
+                        supa.SUPABASE_URL, charUuid, recordId)
+                    network.request(fetchUrl, "GET", function(fe)
+                        local recs = json.decode(fe.response) or {}
+                        if #recs < 2 then
+                            native.showAlert("Aviso", "Precisa de 2 personagens Stars 8", {"OK"})
+                            return
+                        end
+                        local toDelete = {recs[1].id, recs[2].id}
+                        local done = 0
+                        for _, otherId in ipairs(toDelete) do
+                            network.request(string.format("%s/rest/v1/user_characters?id=eq.%s", supa.SUPABASE_URL,
+                                otherId), "DELETE", function(pd)
+                                done = done + 1
+                                if done == 2 then
+                                    network.request(string.format("%s/rest/v1/user_characters?id=eq.%s",
+                                        supa.SUPABASE_URL, recordId), "PATCH", function(pp)
+                                        composer.reloadScene()
+                                    end, {
+                                        headers = headers,
+                                        body = json.encode({
+                                            stars = 10
+                                        })
+                                    })
+                                end
+                            end, {
+                                headers = headers
+                            })
+                        end
+                    end, {
+                        headers = headers
+                    })
+
+                    -- Stars 10→11: consome 1 personagem stars=9
+                elseif currentStars == 10 then
+                    local fetchUrl = string.format(
+                        "%s/rest/v1/user_characters?select=id&characterId=eq.%s&stars=eq.9&id=neq.%s",
+                        supa.SUPABASE_URL, charUuid, recordId)
+                    network.request(fetchUrl, "GET", function(fe)
+                        local recs = json.decode(fe.response) or {}
+                        if #recs < 1 then
+                            native.showAlert("Aviso", "Precisa de 1 personagem Stars 9", {"OK"})
+                            return
+                        end
+                        local otherId = recs[1].id
+                        network.request(
+                            string.format("%s/rest/v1/user_characters?id=eq.%s", supa.SUPABASE_URL, otherId), "DELETE",
+                            function(pd)
+                                if pd.isError then
+                                    return
+                                end
+                                network.request(string.format("%s/rest/v1/user_characters?id=eq.%s", supa.SUPABASE_URL,
+                                    recordId), "PATCH", function(pp)
+                                    composer.reloadScene()
+                                end, {
+                                    headers = headers,
+                                    body = json.encode({
+                                        stars = 11
+                                    })
+                                })
+                            end, {
+                                headers = headers
+                            })
+                    end, {
+                        headers = headers
+                    })
 
                 else
-                    native.showAlert("Aviso", "Evolução de Stars " .. currentStars .. " não implementada aqui",
-                        {"OK"})
+                    native.showAlert("Aviso", "Evolução de Stars " .. currentStars .. " não implementada", {"OK"})
                 end
             end, {
                 headers = headers
