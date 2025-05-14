@@ -5,6 +5,7 @@ local supa = require("config.supabase")
 local json = require("json")
 local network = require("network")
 local userDataLib = require("lib.userData")
+local textile = require("utils.textile")
 
 local scene = composer.newScene()
 
@@ -160,38 +161,183 @@ local SUSHI_UUID = "cd0d2985-9685-46d8-b873-5fa73bfaa5e8"
 
 function scene:create(event)
     local sceneGroup = self.view
-
-    -- fundo
-    local bg = display.newRect(sceneGroup, display.contentCenterX, display.contentCenterY, display.contentWidth,
-        display.contentHeight)
-    bg:setFillColor(0.1)
-
-    -- título
-    display.newText({
-        parent = sceneGroup,
-        text = "Tela de Melhoria",
-        x = display.contentCenterX,
-        y = 60,
-        font = native.systemFontBold,
-        fontSize = 24
-    }):setFillColor(1)
-
-    -- carregar usuário
     local data = userDataLib.load() or {}
     local userId = tonumber(data.id) or 0
     self.userId = userId
 
-    -- botão selecionar personagem
-    local btnSelect = display.newText({
-        parent = sceneGroup,
-        text = "Escolher Personagem",
-        x = display.contentCenterX,
-        y = display.contentHeight - 50,
-        font = native.systemFont,
-        fontSize = 20
+    local background = display.newImageRect(sceneGroup, "assets/7bg/bg_tab_default.jpg", display.contentWidth,
+        display.contentHeight * 1.44)
+    background.x, background.y = display.contentCenterX, display.contentCenterY
+
+    local riseGroup = display.newGroup()
+    sceneGroup:insert(riseGroup)
+
+    local characterModalL = display.newImageRect(riseGroup, "assets/7bg/improve.png", 400 * 1.5, 595 * 1.5)
+    characterModalL.x, characterModalL.y = display.contentCenterX, display.contentCenterY
+
+    local bgSilver = display.newImageRect(riseGroup, "assets/7textbg/tbg_blue_s9_11_l.png", 450 * 1.28, 150 * 1.28)
+    bgSilver.x, bgSilver.y = display.contentCenterX, display.contentCenterY + 260
+
+    local advanceButton = display.newImageRect(riseGroup, "assets/7button/btn_common_yellow_s9.png", 244, 76)
+    advanceButton.x, advanceButton.y = display.contentCenterX + 150, display.contentCenterY + 400
+    local text = textile.new({
+        texto = " Elevar ",
+        x = advanceButton.x,
+        y = advanceButton.y,
+        tamanho = 24,
+        corTexto = {1, 1, 1}, -- Amarelo {0.95, 0.86, 0.31}
+        corContorno = {0, 0, 0},
+        espessuraContorno = 2
     })
-    btnSelect:setFillColor(0.2, 0.6, 1)
-    btnSelect:addEventListener("tap", function()
+    riseGroup:insert(text)
+
+    self.btnUpgrade = advanceButton
+
+    local autoSelect = display.newImageRect(riseGroup, "assets/7button/btn_common_blue_s9.png", 244, 76)
+    autoSelect.x, autoSelect.y = display.contentCenterX - 150, advanceButton.y
+    local text = textile.new({
+        texto = " Auto Adicionar ",
+        x = autoSelect.x,
+        y = autoSelect.y,
+        tamanho = 24,
+        corTexto = {1, 1, 1}, -- Amarelo {0.95, 0.86, 0.31}
+        corContorno = {0, 0, 0},
+        espessuraContorno = 2
+    })
+    riseGroup:insert(text)
+
+    local topBack = require("components.backTop")
+    local topBack = topBack.new({
+        title = ""
+    })
+    riseGroup:insert(topBack)
+    local navbar = require("components.navBar")
+    local navbar = navbar.new()
+    riseGroup:insert(navbar)
+
+    local tabEquipmentBg = display.newImageRect(sceneGroup, "assets/7button/btn_tab_s9.png", 236, 82)
+    tabEquipmentBg.x, tabEquipmentBg.y = 330, -128
+    local changeMemberText = textile.new({
+        group = sceneGroup,
+        texto = " Elevar Ordem ",
+        x = tabEquipmentBg.x,
+        y = tabEquipmentBg.y + 5,
+        tamanho = 22,
+        corTexto = {0.66, 0.66, 0.66}, -- Amarelo {0.95, 0.86, 0.31}
+        corContorno = {0, 0, 0},
+        espessuraContorno = 2
+    })
+
+    local tabFormationBg = display.newImageRect(sceneGroup, "assets/7button/btn_tab_light_s9.png", 236, 82)
+    tabFormationBg.x, tabFormationBg.y = 110, -128
+    local changeMemberText = textile.new({
+        group = sceneGroup,
+        texto = " Elevar ",
+        x = tabFormationBg.x,
+        y = tabFormationBg.y + 5,
+        tamanho = 22,
+        corTexto = {1}, -- Amarelo {0.95, 0.86, 0.31}
+        corContorno = {0, 0, 0},
+        espessuraContorno = 2
+    })
+
+    local xpBarBg = display.newImageRect(sceneGroup, "assets/7misc/pb_hp_gray.png", 224 * 1.1, 16 * 1.1)
+    xpBarBg.x, xpBarBg.y = display.contentCenterX, display.contentCenterY - 58
+
+    local addButton = display.newGroup()
+    sceneGroup:insert(addButton)
+
+    local btnAdd1 = display.newImageRect(addButton, "assets/7button/btn_add.png", 104 * 1.1, 104 * 1.1)
+    btnAdd1.x, btnAdd1.y = 100, 135
+    btnAdd1:addEventListener("tap", function()
+
+        composer.gotoScene("interfaces.growing.improveEvolveSelect", {
+            effect = "slideRight",
+            time = 300,
+            params = {
+                recordId = _G.chaId
+            }
+        })
+    end)
+    local btnAdd2 = display.newImageRect(addButton, "assets/7button/btn_add.png", 104 * 1.1, 104 * 1.1)
+    btnAdd2.x, btnAdd2.y = btnAdd1.x, 135 + 158
+    btnAdd2:addEventListener("tap", function()
+        composer.gotoScene("interfaces.growing.improveEvolveSelect", {
+            effect = "slideRight",
+            time = 300,
+            params = {
+                recordId = _G.chaId
+            }
+        })
+    end)
+    local btnAdd3 = display.newImageRect(addButton, "assets/7button/btn_add.png", 104 * 1.1, 104 * 1.1)
+    btnAdd3.x, btnAdd3.y = btnAdd1.x, 135 + (158 * 2)
+    btnAdd3:addEventListener("tap", function()
+        composer.gotoScene("interfaces.growing.improveEvolveSelect", {
+            effect = "slideRight",
+            time = 300,
+            params = {
+                recordId = _G.chaId
+            }
+        })
+    end)
+    local btnAdd4 = display.newImageRect(addButton, "assets/7button/btn_add.png", 104 * 1.1, 104 * 1.1)
+    btnAdd4.x, btnAdd4.y = display.contentCenterX + 220, 135
+    btnAdd4:addEventListener("tap", function()
+        composer.gotoScene("interfaces.growing.improveEvolveSelect", {
+            effect = "slideRight",
+            time = 300,
+            params = {
+                recordId = _G.chaId
+            }
+        })
+    end)
+    local btnAdd5 = display.newImageRect(addButton, "assets/7button/btn_add.png", 104 * 1.1, 104 * 1.1)
+    btnAdd5.x, btnAdd5.y = btnAdd4.x, 135 + 158
+    btnAdd5:addEventListener("tap", function()
+        composer.gotoScene("interfaces.growing.improveEvolveSelect", {
+            effect = "slideRight",
+            time = 300,
+            params = {
+                recordId = _G.chaId
+            }
+        })
+    end)
+    local btnAdd6 = display.newImageRect(addButton, "assets/7button/btn_add.png", 104 * 1.1, 104 * 1.1)
+    btnAdd6.x, btnAdd6.y = btnAdd4.x, 135 + (158 * 2)
+    btnAdd6:addEventListener("tap", function()
+        composer.gotoScene("interfaces.growing.improveEvolveSelect", {
+            effect = "slideRight",
+            time = 300,
+            params = {
+                recordId = _G.chaId
+            }
+        })
+    end)
+
+    local function pulse(obj)
+        transition.to(obj, {
+            time = 1200,
+            alpha = 0,
+            onComplete = function()
+                -- depois faz fade in e reinicia
+                transition.to(obj, {
+                    time = 800,
+                    alpha = 1,
+                    onComplete = function()
+                        pulse(obj)
+                    end
+                })
+            end
+        })
+    end
+
+    pulse(addButton)
+
+    local card_back_m = display.newImageRect(sceneGroup, "assets/7card/card_back_m.png", 328 / 1.25, 380 / 1.25)
+    card_back_m.x, card_back_m.y = display.contentCenterX, display.contentCenterY - 260
+    card_back_m.alpha = 0.01
+    card_back_m:addEventListener("tap", function()
         composer.gotoScene("interfaces.growing.improveSelect", {
             effect = "slideLeft",
             time = 300,
@@ -201,29 +347,41 @@ function scene:create(event)
         })
     end)
 
-    -- botão escolher sushis
-    local btnSushi = display.newText({
-        parent = sceneGroup,
-        text = "Escolher Sushis",
-        x = display.contentCenterX,
-        y = display.contentHeight - 100,
-        font = native.systemFont,
-        fontSize = 18
+    local selectText = textile.new({
+        texto = "Selec.\numa\ncarta.",
+        x = card_back_m.x,
+        y = card_back_m.y,
+        tamanho = 32,
+        corTexto = {1, 1, 1}, -- Amarelo {0.95, 0.86, 0.31}
+        corContorno = {0, 0, 0, 0.2},
+        espessuraContorno = 2
     })
-    btnSushi:setFillColor(1, 0.5, 0)
-    btnSushi:addEventListener("tap", function()
-        if not _G.chaId then
-            native.showAlert("Aviso", "Selecione um personagem primeiro", {"OK"})
-            return
-        end
-        composer.gotoScene("interfaces.growing.improveEvolveSelect", {
-            effect = "slideLeft",
-            time = 300,
-            params = {
-                recordId = _G.chaId
-            }
-        })
-    end)
+    riseGroup:insert(selectText)
+    pulse(selectText)
+
+    -- -- botão escolher sushis
+    -- local btnSushi = display.newText({
+    --     parent = sceneGroup,
+    --     text = "Escolher Sushis",
+    --     x = display.contentCenterX,
+    --     y = display.contentHeight - 100,
+    --     font = native.systemFont,
+    --     fontSize = 18
+    -- })
+    -- btnSushi:setFillColor(1, 0.5, 0)
+    -- btnSushi:addEventListener("tap", function()
+    --     if not _G.chaId then
+
+    --         return
+    --     end
+    --     composer.gotoScene("interfaces.growing.improveEvolveSelect", {
+    --         effect = "slideRight",
+    --         time = 300,
+    --         params = {
+    --             recordId = _G.chaId
+    --         }
+    --     })
+    -- end)
 
     -- Dentro de scene:create (immediately after btnSushi), adicione:
 
@@ -262,9 +420,9 @@ function scene:create(event)
             local qty = (rec and rec.quantity) or 0
             local selectCount = math.min(qty, 6)
             self.selectedSushiCount = selectCount
-            if self.sushiCountText then
-                self.sushiCountText.text = "Sushis selecionados: " .. selectCount
-            end
+            -- if self.sushiCountText then
+            --     self.sushiCountText.text = "Sushis selecionados: " .. selectCount
+            -- end
             -- Remove grid anterior (se existir)
             if self.sushiIconGroup then
                 self.sushiIconGroup:removeSelf()
@@ -293,18 +451,6 @@ function scene:create(event)
         })
     end)
 
-    -- botão upgrade
-    local btnUpgrade = display.newText({
-        parent = sceneGroup,
-        text = "Upgrade",
-        x = display.contentCenterX,
-        y = display.contentHeight - 140,
-        font = native.systemFontBold,
-        fontSize = 18
-    })
-    btnUpgrade:setFillColor(0.2, 0.8, 1)
-    self.btnUpgrade = btnUpgrade
-
     -- grupo dinâmico
     self.cardGroup = display.newGroup()
     sceneGroup:insert(self.cardGroup)
@@ -329,31 +475,21 @@ function scene:show(event)
     self.view:insert(self.cardGroup)
 
     -- exibe contador de sushis
-    self.sushiCountText = display.newText({
-        parent = self.cardGroup,
-        text = "Sushis selecionados: " .. self.selectedSushiCount,
-        x = display.contentCenterX,
-        y = 100,
-        font = native.systemFont,
-        fontSize = 18
-    })
-    self.sushiCountText:setFillColor(1)
+    -- self.sushiCountText = display.newText({
+    --     parent = self.cardGroup,
+    --     text = "Sushis selecionados: " .. self.selectedSushiCount,
+    --     x = display.contentCenterX,
+    --     y = 100,
+    --     font = native.systemFont,
+    --     fontSize = 18
+    -- })
+    -- self.sushiCountText:setFillColor(1)
 
     -- verifica personagem
     local recordId = _G.chaId
     if not recordId then
         return
     end
-
-    -- exibe registro
-    display.newText({
-        parent = self.cardGroup,
-        text = "Registro ID: " .. recordId,
-        x = display.contentCenterX,
-        y = 40,
-        font = native.systemFontBold,
-        fontSize = 22
-    }):setFillColor(1)
 
     -- headers para requisições
     local headers = {
@@ -375,55 +511,76 @@ function scene:show(event)
 
         -- cria campos de texto e guarda em self.*
         local y0 = 130
-        self.levelText = display.newText({
-            parent = self.cardGroup,
-            text = "Level: " .. d.level,
-            x = display.contentCenterX,
-            y = y0,
-            font = native.systemFont,
-            fontSize = 20
-        });
-        self.levelText:setFillColor(1, 1, 0)
 
-        self.healthText = display.newText({
+        local levelText = textile.new({
             parent = self.cardGroup,
-            text = "Health: " .. d.health,
-            x = display.contentCenterX,
-            y = y0 + 30,
-            font = native.systemFont,
-            fontSize = 18
-        });
-        self.healthText:setFillColor(0, 1, 0)
+            texto = "Nv" .. d.level .. " ",
+            x = display.contentCenterX - 118,
+            y = display.contentCenterY - 77,
+            tamanho = 21,
+            corTexto = {0.95, 0.86, 0.31}, -- Amarelo {0.95, 0.86, 0.31}
+            corContorno = {0, 0, 0},
+            espessuraContorno = 2,
+            anchorX = 0
+        })
+        self.cardGroup:insert(levelText)
 
-        self.attackText = display.newText({
+        local iconHp = display.newImageRect(self.cardGroup, "assets/7icon/icon_hp.png", 48, 48)
+        iconHp.x, iconHp.y = display.contentCenterX - 100, display.contentCenterY - 27
+        local hpText = textile.new({
             parent = self.cardGroup,
-            text = "Attack: " .. d.attack,
-            x = display.contentCenterX,
-            y = y0 + 60,
-            font = native.systemFont,
-            fontSize = 18
-        });
-        self.attackText:setFillColor(1, 0, 0)
+            texto = d.health .. " ",
+            x = iconHp.x + 221,
+            y = iconHp.y + 2,
+            tamanho = 24,
+            corTexto = {1, 1, 1}, -- Amarelo {0.95, 0.86, 0.31}
+            corContorno = {0, 0, 0},
+            espessuraContorno = 2,
+            anchorX = 100
+        })
+        self.cardGroup:insert(hpText)
 
-        self.xpText = display.newText({
+        local iconAtk = display.newImageRect(self.cardGroup, "assets/7icon/icon_atk.png", 48, 48)
+        iconAtk.x, iconAtk.y = display.contentCenterX - 100, display.contentCenterY + 11
+        local atkText = textile.new({
             parent = self.cardGroup,
-            text = "XP: " .. self.xpVal,
-            x = display.contentCenterX,
-            y = y0 + 90,
-            font = native.systemFont,
-            fontSize = 18
-        });
-        self.xpText:setFillColor(0.5, 0.5, 1)
+            texto = d.attack .. " ",
+            x = hpText.x,
+            y = hpText.y + 42,
+            tamanho = 24,
+            corTexto = {1, 1, 1}, -- Amarelo {0.95, 0.86, 0.31}
+            corContorno = {0, 0, 0},
+            espessuraContorno = 2,
+            anchorX = 100
+        })
+        self.cardGroup:insert(atkText)
 
-        -- mostra card
+        local xpText = textile.new({
+            parent = self.cardGroup,
+            texto = 0 .. "/" .. "" .. "asdasd ",
+            x = display.contentCenterX + 120,
+            y = display.contentCenterY - 77,
+            tamanho = 21,
+            corTexto = {1}, -- Amarelo {0.95, 0.86, 0.31}
+            corContorno = {0, 0, 0},
+            espessuraContorno = 2,
+            anchorX = 100
+        })
+        self.cardGroup:insert(xpText)
+
         local c = Card.new({
             x = display.contentCenterX,
-            y = display.contentCenterY + 40,
+            y = display.contentCenterY - 250,
             characterId = d.characterId,
-            scaleFactor = 1,
+            scaleFactor = 1.17,
             stars = d.stars
         })
         self.cardGroup:insert(c)
+
+        if d.level == 130 then
+            local xpBarBg = display.newImageRect(self.cardGroup, "assets/7misc/pb_green.png", 224 * 1.1, 16 * 1.1)
+            xpBarBg.x, xpBarBg.y = display.contentCenterX, display.contentCenterY - 60
+        end
 
         local function onUpgradeTap()
             if not _G.chaId then
@@ -554,7 +711,6 @@ function scene:show(event)
                     local bodyChar = json.encode({
                         xp = newXP,
                         level = newLevel,
-
                         health = newHP,
                         attack = newATK
                     })
@@ -576,9 +732,9 @@ function scene:show(event)
 
                         -- 6) Zere o contador e o texto:
                         self.selectedSushiCount = 0
-                        if self.sushiCountText then
-                            self.sushiCountText.text = "Sushis selecionados: 0"
-                        end
+                        -- if self.sushiCountText then
+                        --     self.sushiCountText.text = "Sushis selecionados: 0"
+                        -- end
                     end, {
                         headers = {
                             ["Content-Type"] = "application/json",
@@ -611,7 +767,6 @@ function scene:show(event)
         headers = headers
     })
 
-    -- remove grid anterior, se existir
     if self.sushiIconGroup then
         self.sushiIconGroup:removeSelf()
     end
@@ -620,16 +775,16 @@ function scene:show(event)
     self.cardGroup:insert(self.sushiIconGroup)
 
     local centerX = display.contentCenterX
-    local startY = 100 -- ajuste a altura inicial
-    local offsetX = 80 -- distância horizontal da coluna
-    local offsetY = 120 -- distância vertical entre linhas
+    local startY = 135 -- ajuste a altura inicial
+    local offsetX = 220 -- distância horizontal da coluna
+    local offsetY = 160 -- distância vertical entre linhas
     local count = math.min(self.selectedSushiCount, 6)
 
     for i = 1, count do
         local col = (i > 3) and 2 or 1
         local row = (i > 3) and (i - 3) or i
 
-        local icon = display.newImageRect(self.sushiIconGroup, "assets/7items/sushi.png", 104, 104)
+        local icon = display.newImageRect(self.sushiIconGroup, "assets/7items/sushi.png", 104 * 1.15, 104 * 1.15)
         icon.x = centerX + (col == 1 and -offsetX or offsetX)
         icon.y = startY + (row - 1) * offsetY
     end

@@ -1050,7 +1050,7 @@ local function showHit(target, value, hitType, isCrit)
     local posY = y - 20
 
     -- “Miss” continua inalterado
-    if hitType == "damage" and value == "Miss" then
+    if hitType == "damage" and value == "Missasd" then
         local missImage = display.newImageRect("assets/7text/misc_miss.png", 140 * 1.5, 60 * 1.5)
         missImage.anchorX, missImage.anchorY = 0.5, 0.5
         missImage.x, missImage.y = x, posY

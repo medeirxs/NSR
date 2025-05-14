@@ -2,10 +2,12 @@
 local composer = require("composer")
 local Card = require("components.card")
 local userDataLib = require("lib.userData")
+local cardSG = require("components.cardRise")
 local supa = require("config.supabase")
 local json = require("json")
 local network = require("network")
 local widget = require("widget")
+local textile = require("utils.textile")
 
 local scene = composer.newScene()
 
@@ -53,37 +55,32 @@ local starLevelCap = {
 
 function scene:create(event)
     local sceneGroup = self.view
-
-    -- background
-    display.newRect(sceneGroup, display.contentCenterX, display.contentCenterY, display.contentWidth,
-        display.contentHeight):setFillColor(0.1)
-
-    -- title
-    display.newText({
-        parent = sceneGroup,
-        text = "Tela de Raise",
-        x = display.contentCenterX,
-        y = 60,
-        font = native.systemFontBold,
-        fontSize = 24
-    }):setFillColor(1)
-
-    -- load userId
     local data = userDataLib.load() or {}
     local userId = tonumber(data.id) or 0
     self.userId = userId
 
-    -- btn Select Character
-    local btnSelect = display.newText({
-        parent = sceneGroup,
-        text = "Escolher Personagem",
-        x = display.contentCenterX,
-        y = display.contentHeight - 50,
-        font = native.systemFont,
-        fontSize = 20
-    })
-    btnSelect:setFillColor(0.2, 0.6, 1)
-    btnSelect:addEventListener("tap", function()
+    local background = display.newImageRect(sceneGroup, "assets/7bg/bg_tab_default.jpg", display.contentWidth,
+        display.contentHeight * 1.44)
+    background.x, background.y = display.contentCenterX, display.contentCenterY
+
+    local riseGroup = display.newGroup()
+    sceneGroup:insert(riseGroup)
+
+    local characterModalL = display.newImageRect(riseGroup, "assets/7bg/dtModalInside.png", 275, 400)
+    characterModalL.x, characterModalL.y = 153, display.contentCenterY - 200
+    local characterModalR = display.newImageRect(riseGroup, "assets/7bg/dtModalInside.png", 275, 400)
+    characterModalR.x, characterModalR.y = characterModalL.x + 335, characterModalL.y
+    local itemsModal = display.newImageRect(riseGroup, "assets/7bg/riseModal.png", 500 * 1.21, 250 * 1.21)
+    itemsModal.x, itemsModal.y = display.contentCenterX, display.contentCenterY + 160
+
+    local arrow1 = display.newImageRect(riseGroup, "assets/7button/btn_arrow_3.png", 66 / 1.1, 90 / 1.1)
+    arrow1.x, arrow1.y = display.contentCenterX, characterModalR.y - 100
+    local arrow2 = display.newImageRect(riseGroup, "assets/7button/btn_arrow_3.png", 66 / 1.1, 90 / 1.1)
+    arrow2.x, arrow2.y = display.contentCenterX, characterModalR.y + 100
+
+    local emptyCardL = display.newImageRect(riseGroup, "assets/7card/card_holder_m.png", 400 / 1.6, 460 / 1.6)
+    emptyCardL.x, emptyCardL.y = characterModalL.x, characterModalL.y - 45
+    emptyCardL:addEventListener("tap", function()
         composer.gotoScene("interfaces.growing.raiseSelect", {
             effect = "slideLeft",
             time = 300,
@@ -93,16 +90,95 @@ function scene:create(event)
         })
     end)
 
-    -- display selected character id
-    self.charText = display.newText({
-        parent = sceneGroup,
-        text = "Personagem: —",
-        x = display.contentCenterX,
-        y = 120,
-        font = native.systemFont,
-        fontSize = 18
+    local emptyCardR = display.newImageRect(riseGroup, "assets/7card/card_holder_m.png", 400 / 1.6, 460 / 1.6)
+    emptyCardR.x, emptyCardR.y = characterModalR.x, characterModalR.y - 45
+
+    local levelBgBefore = display.newImageRect(riseGroup, "assets/7textbg/tbg_blue_s9_4.png", 239, 15)
+    levelBgBefore.x, levelBgBefore.y = emptyCardL.x, display.contentCenterY - 85
+    local healthBgBefore = display.newImageRect(riseGroup, "assets/7textbg/tbg_blue_s9_4.png", 239, 15)
+    healthBgBefore.x, healthBgBefore.y = emptyCardL.x, display.contentCenterY - 55
+    local attackBgBefore = display.newImageRect(riseGroup, "assets/7textbg/tbg_blue_s9_4.png", 239, 15)
+    attackBgBefore.x, attackBgBefore.y = emptyCardL.x, display.contentCenterY - 25
+
+    local levelBgAfter = display.newImageRect(riseGroup, "assets/7textbg/tbg_blue_s9_4.png", 239, 15)
+    levelBgAfter.x, levelBgAfter.y = emptyCardR.x, display.contentCenterY - 85
+    local healthBgAfter = display.newImageRect(riseGroup, "assets/7textbg/tbg_blue_s9_4.png", 239, 15)
+    healthBgAfter.x, healthBgAfter.y = emptyCardR.x, display.contentCenterY - 55
+    local attackBgAfter = display.newImageRect(riseGroup, "assets/7textbg/tbg_blue_s9_4.png", 239, 15)
+    attackBgAfter.x, attackBgAfter.y = emptyCardR.x, display.contentCenterY - 25
+
+    local levelIconL = display.newImageRect(riseGroup, "assets/7icon/icon_level.png", 48 / 1.2, 48 / 1.2)
+    levelIconL.x, levelIconL.y = levelBgBefore.x - 90, levelBgBefore.y - 5
+    local levelIconL = display.newImageRect(riseGroup, "assets/7icon/icon_level.png", 48 / 1.2, 48 / 1.2)
+    levelIconL.x, levelIconL.y = levelBgAfter.x - 90, levelBgAfter.y - 5
+    local healthIcon = display.newImageRect(riseGroup, "assets/7icon/icon_hp.png", 48 / 1.2, 48 / 1.2)
+    healthIcon.x, healthIcon.y = levelBgBefore.x - 90, levelBgBefore.y + 25
+    local healthIcon = display.newImageRect(riseGroup, "assets/7icon/icon_hp.png", 48 / 1.2, 48 / 1.2)
+    healthIcon.x, healthIcon.y = levelBgAfter.x - 90, levelBgBefore.y + 25
+    local attackIcon = display.newImageRect(riseGroup, "assets/7icon/icon_atk.png", 48 / 1.2, 48 / 1.2)
+    attackIcon.x, attackIcon.y = levelBgBefore.x - 90, levelBgBefore.y + 55
+    local attackIcon = display.newImageRect(riseGroup, "assets/7icon/icon_atk.png", 48 / 1.2, 48 / 1.2)
+    attackIcon.x, attackIcon.y = levelBgAfter.x - 90, levelBgAfter.y + 55
+
+    local itemEvolveEmpty1 = display.newImageRect(riseGroup, "assets/7card/card_holder_s_1.png", 125, 125)
+    itemEvolveEmpty1.x, itemEvolveEmpty1.y = 82, display.contentCenterY + 75
+    local itemEvolveEmpty1 = display.newImageRect(riseGroup, "assets/7card/card_holder_s_1.png", 125, 125)
+    itemEvolveEmpty1.x, itemEvolveEmpty1.y = 82 + 115 + 5, display.contentCenterY + 75
+    local itemEvolveEmpty1 = display.newImageRect(riseGroup, "assets/7card/card_holder_s_1.png", 125, 125)
+    itemEvolveEmpty1.x, itemEvolveEmpty1.y = 82 + 230 + 10, display.contentCenterY + 75
+    local itemEvolveEmpty1 = display.newImageRect(riseGroup, "assets/7card/card_holder_s_1.png", 125, 125)
+    itemEvolveEmpty1.x, itemEvolveEmpty1.y = 82 + 345 + 13, display.contentCenterY + 75
+    local itemEvolveEmpty1 = display.newImageRect(riseGroup, "assets/7card/card_holder_s_1.png", 125, 125)
+    itemEvolveEmpty1.x, itemEvolveEmpty1.y = 82 + 460 + 15, display.contentCenterY + 75
+
+    local bgSilver = display.newImageRect(riseGroup, "assets/7textbg/tbg_blue_s9_11.png", 380 * 1.5, 50 * 1.8)
+    bgSilver.x, bgSilver.y = display.contentCenterX, display.contentCenterY + 190
+
+    local topBack = require("components.backTop")
+    local topBack = topBack.new({
+        title = ""
     })
-    self.charText:setFillColor(1)
+    riseGroup:insert(topBack)
+    local navbar = require("components.navBar")
+    local navbar = navbar.new()
+    riseGroup:insert(navbar)
+
+    local tabEquipmentBg = display.newImageRect(sceneGroup, "assets/7button/btn_tab_light_s9.png", 236, 82)
+    tabEquipmentBg.x, tabEquipmentBg.y = 330, -128
+    local changeMemberText = textile.new({
+        group = sceneGroup,
+        texto = " Elevar Ordem ",
+        x = tabEquipmentBg.x,
+        y = tabEquipmentBg.y + 5,
+        tamanho = 22,
+        corTexto = {1}, -- Amarelo {0.95, 0.86, 0.31}
+        corContorno = {0, 0, 0},
+        espessuraContorno = 2
+    })
+
+    local tabFormationBg = display.newImageRect(sceneGroup, "assets/7button/btn_tab_s9.png", 236, 82)
+    tabFormationBg.x, tabFormationBg.y = 110, -128
+    local changeMemberText = textile.new({
+        group = sceneGroup,
+        texto = " Elevar ",
+        x = tabFormationBg.x,
+        y = tabFormationBg.y + 5,
+        tamanho = 22,
+        corTexto = {0.6, 0.6, 0.6}, -- Amarelo {0.95, 0.86, 0.31}
+        corContorno = {0, 0, 0},
+        espessuraContorno = 2
+    })
+
+    local select = textile.new({
+        texto = "Selec.\numa\ncarta.",
+        x = emptyCardL.x,
+        y = emptyCardL.y,
+        tamanho = 28,
+        corTexto = {1, 1, 1}, -- Amarelo {0.95, 0.86, 0.31}
+        corContorno = {0, 0, 0, 0.2},
+        espessuraContorno = 2
+    })
+    riseGroup:insert(select)
 
     -- groups for card and stars
     self.cardGroup = display.newGroup()
@@ -120,9 +196,6 @@ function scene:show(event)
     if not recordId then
         return
     end
-
-    -- update charText
-    self.charText.text = "Personagem ID: " .. tostring(recordId)
 
     -- clear previous
     self.cardGroup:removeSelf()
@@ -155,8 +228,8 @@ function scene:show(event)
 
         -- show card
         local card = Card.new({
-            x = 150,
-            y = display.contentCenterY + 40,
+            x = 155,
+            y = display.contentCenterY - 230,
             characterId = d.characterId,
             scaleFactor = 1,
             stars = d.stars
@@ -165,42 +238,176 @@ function scene:show(event)
 
         local baseY = card.y + (card.height or 0) / 2 + 20 -- 20px de espaçamento
 
+        local function getStars(stars)
+            if stars == 5 then
+                return 5
+            elseif stars == 6 then
+                return 5
+            elseif stars == 8 then
+                return 8
+            elseif stars == 9 then
+                return 8
+            elseif stars == 10 then
+                return 9
+            end
+            return nil
+        end
+
+        local convertedStars = getStars(d.stars)
+
+        -- if d.stars == 5 then
+        --     local card = cardSG.new({
+        --         x = 50,
+        --         y = 50,
+        --         characterId = d.characterId,
+        --         stars = convertedStars
+        --     })
+        -- end
+
+        -- if d.stars == 6 then
+        --     local card = cardSG.new({
+        --         x = 50,
+        --         y = 50,
+        --         characterId = d.characterId,
+        --         stars = convertedStars
+        --     })
+        --     local card2 = cardSG.new({
+        --         x = card.x + 100,
+        --         y = 50,
+        --         characterId = d.characterId,
+        --         stars = convertedStars
+        --     })
+        -- end
+
+        -- if d.stars == 8 then
+        --     local card = cardSG.new({
+        --         x = 50,
+        --         y = 50,
+        --         characterId = d.characterId,
+        --         stars = convertedStars
+        --     })
+
+        -- end
+
+        -- if d.stars == 9 then
+        --     local card = cardSG.new({
+        --         x = 50,
+        --         y = 50,
+        --         characterId = d.characterId,
+        --         stars = convertedStars
+        --     })
+        --     local card2 = cardSG.new({
+        --         x = card.x + 100,
+        --         y = 50,
+        --         characterId = d.characterId,
+        --         stars = convertedStars
+        --     })
+        -- end
+
+        -- if d.stars == 10 then
+        --     local card = cardSG.new({
+        --         x = 50,
+        --         y = 50,
+        --         characterId = d.characterId,
+        --         stars = convertedStars
+        --     })
+
+        -- end
+
         -- Level
-        local levelText = display.newText({
-            parent = self.cardGroup,
-            text = "Level: " .. d.level,
-            x = card.x,
-            y = baseY,
-            font = native.systemFont,
-            fontSize = 18
-        })
-        levelText:setFillColor(1, 1, 0)
 
-        -- Health
-        local healthText = display.newText({
-            parent = self.cardGroup,
-            text = "Health: " .. d.health,
-            x = card.x,
-            y = baseY + 24,
-            font = native.systemFont,
-            fontSize = 16
-        })
-        healthText:setFillColor(0, 1, 0)
+        local function getMaxLevel(stars)
+            if stars == 2 then
+                return 20
+            elseif stars == 3 then
+                return 30
+            elseif stars == 4 then
+                return 40
+            elseif stars == 5 then
+                return 60
+            elseif stars == 6 then
+                return 70
+            elseif stars == 7 then
+                return 80
+            elseif stars == 8 then
+                return 100
+            elseif stars == 9 then
+                return 110
+            elseif stars == 10 then
+                return 120
+            elseif stars == 11 then
+                return 130
+            end
+            return nil
+        end
 
-        -- Attack
-        local attackText = display.newText({
-            parent = self.cardGroup,
-            text = "Attack: " .. d.attack,
-            x = card.x,
-            y = baseY + 48,
-            font = native.systemFont,
-            fontSize = 16
+        local function getNextMaxLevel(stars)
+            if stars == 2 then
+                return 30
+            elseif stars == 3 then
+                return 40
+            elseif stars == 4 then
+                return 60
+            elseif stars == 5 then
+                return 70
+            elseif stars == 6 then
+                return 80
+            elseif stars == 7 then
+                return 100
+            elseif stars == 8 then
+                return 110
+            elseif stars == 9 then
+                return 120
+            elseif stars == 10 then
+                return 130
+            elseif stars == 11 then
+                return 150
+            end
+            return nil
+        end
+
+        local maxLevel = getMaxLevel(d.stars)
+        local upMaxLevel = getNextMaxLevel(d.stars)
+
+        local levelText = textile.new({
+            texto = d.level .. "/" .. maxLevel .. " ",
+            x = display.contentCenterX - 65,
+            y = display.contentCenterY - 107,
+            tamanho = 20,
+            corTexto = {1, 1, 1}, -- Amarelo {0.95, 0.86, 0.31}
+            corContorno = {0, 0, 0},
+            espessuraContorno = 2,
+            anchorX = 100,
+            anchorY = 0
         })
-        attackText:setFillColor(1, 0, 0)
+
+        local healthText = textile.new({
+            texto = d.health .. " ",
+            x = levelText.x,
+            y = display.contentCenterY - 77,
+            tamanho = 20,
+            corTexto = {1, 1, 1}, -- Amarelo {0.95, 0.86, 0.31}
+            corContorno = {0, 0, 0},
+            espessuraContorno = 2,
+            anchorX = 100,
+            anchorY = 0
+        })
+
+        local attackText = textile.new({
+            texto = d.attack .. " ",
+            x = levelText.x,
+            y = display.contentCenterY - 47,
+            tamanho = 20,
+            corTexto = {1, 1, 1}, -- Amarelo {0.95, 0.86, 0.31}
+            corContorno = {0, 0, 0},
+            espessuraContorno = 2,
+            anchorX = 100,
+            anchorY = 0
+        })
 
         local card2 = Card.new({
-            x = display.contentCenterX + 150,
-            y = display.contentCenterY + 40,
+            x = display.contentCenterX + 170,
+            y = display.contentCenterY - 230,
             characterId = d.characterId,
             scaleFactor = 1,
             stars = d.stars + 1
@@ -210,53 +417,60 @@ function scene:show(event)
         local baseY = card2.y + (card2.height or 0) / 2 + 20 -- 20px de espaçamento
 
         -- Level
-        local levelText2 = display.newText({
-            parent = self.cardGroup,
-            text = "Level: " .. d.level,
-            x = card2.x,
-            y = baseY,
-            font = native.systemFont,
-            fontSize = 18
+        local levelText2 = textile.new({
+            texto = maxLevel .. "/" .. upMaxLevel .. " ",
+            x = display.contentCenterX + 270,
+            y = display.contentCenterY - 107,
+            tamanho = 20,
+            corTexto = {1, 1, 1}, -- Amarelo {0.95, 0.86, 0.31}
+            corContorno = {0, 0, 0},
+            espessuraContorno = 2,
+            anchorX = 100,
+            anchorY = 0
         })
-        levelText2:setFillColor(1, 1, 0)
 
         -- Health
         local healthValue = math.floor(d.health * 1.1)
-        local healthText2 = display.newText({
-            parent = self.cardGroup,
-            text = "Health: " .. healthValue,
-            x = card2.x,
-            y = baseY + 24,
-            font = native.systemFont,
-            fontSize = 16
+        local healthText2 = textile.new({
+            texto = healthValue .. " ",
+            x = levelText2.x,
+            y = display.contentCenterY - 77,
+            tamanho = 20,
+            corTexto = {1, 1, 1}, -- Amarelo {0.95, 0.86, 0.31}
+            corContorno = {0, 0, 0},
+            espessuraContorno = 2,
+            anchorX = 100,
+            anchorY = 0
         })
-        healthText2:setFillColor(0, 1, 0)
 
         -- Attack
         local attackValue = math.floor(d.attack * 1.1)
-        local attackText2 = display.newText({
-            parent = self.cardGroup,
-            text = "Attack: " .. attackValue,
-            x = card2.x,
-            y = baseY + 48,
-            font = native.systemFont,
-            fontSize = 16
+        local attackText2 = textile.new({
+            texto = attackValue .. " ",
+            x = levelText2.x,
+            y = display.contentCenterY - 47,
+            tamanho = 20,
+            corTexto = {1, 1, 1}, -- Amarelo {0.95, 0.86, 0.31}
+            corContorno = {0, 0, 0},
+            espessuraContorno = 2,
+            anchorX = 100,
+            anchorY = 0
         })
-        attackText2:setFillColor(1, 0, 0)
 
-        -- raise button
-        local btnRaise = display.newText({
-            parent = self.starsGroup,
-            text = "↑ Star",
-            x = display.contentCenterX,
-            y = display.contentCenterY + 50,
-            font = native.systemFontBold,
-            fontSize = 18
+        local advanceButton = display.newImageRect(self.starsGroup, "assets/7button/btn_common_yellow_s9_l.png",
+            280 * 1.6, 40 * 1.6)
+        advanceButton.x, advanceButton.y = display.contentCenterX, display.contentCenterY + 272
+
+        local text = textile.new({
+            texto = " Elevar Ordem ",
+            x = advanceButton.x,
+            y = advanceButton.y,
+            tamanho = 24,
+            corTexto = {1, 1, 1}, -- Amarelo {0.95, 0.86, 0.31}
+            corContorno = {0, 0, 0},
+            espessuraContorno = 2
         })
-        btnRaise:setFillColor(0.8, 0.2, 0)
-        if d.stars >= MAX_STARS then
-            btnRaise.alpha = 0.5
-        end
+        self.starsGroup:insert(text)
 
         -- raise handler
         local function onRaiseTap()
@@ -566,7 +780,7 @@ function scene:show(event)
             })
         end
 
-        btnRaise:addEventListener("tap", onRaiseTap)
+        advanceButton:addEventListener("tap", onRaiseTap)
     end, {
         headers = headers
     })
