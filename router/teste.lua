@@ -16,7 +16,7 @@ function scene:create(event)
         x = display.contentCenterX - 110,
         y = 0,
         characterId = "058fab51-e43a-4896-86fe-83f579e701fd",
-        stars = 4
+        stars = 9
     })
 end
 
