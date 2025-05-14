@@ -22,7 +22,21 @@ local starRequirements = {
            "17603f91-cabc-4d09-8430-1b189066e8a6", "3c2b103f-2b41-4347-8ea2-cf79aeef220b",
            "88554fbd-ea57-4909-9c67-b370c6d7fb89"},
     [7] = {"83749125-dd27-4c01-93e2-49ae2b5de364"}
+}
 
+local itemImages = {
+    ["fa6a4997-cc7e-4a9e-a977-f08ea4f7ae82"] = "assets/7items/yellow_pill.png",
+    ["4a66104b-d370-4582-a583-39750e223e6f"] = "assets/7items/green_pill.png",
+    ["02ea015b-e52c-4a60-89d6-b081048135c1"] = "assets/7items/red_pill.png",
+    ["f76b1b27-6eda-4e0f-b8f5-889d4444a892"] = "assets/7items/water_paper.png",
+    ["c9938580-3ad2-42c4-b526-3e92f9362367"] = "assets/7items/fire_paper.png",
+    ["7b5c85fe-c11d-4e6d-8765-94dc39850e85"] = "assets/7items/thunder_paper.png",
+    ["2b70ab29-4c4d-4efa-9903-2207fb16a82c"] = "assets/7items/water.png",
+    ["8bf99e1b-c655-47e4-8b3f-5ef778c995b7"] = "assets/7items/earth.png",
+    ["17603f91-cabc-4d09-8430-1b189066e8a6"] = "assets/7items/fire.png",
+    ["3c2b103f-2b41-4347-8ea2-cf79aeef220b"] = "assets/7items/thunder.png",
+    ["88554fbd-ea57-4909-9c67-b370c6d7fb89"] = "assets/7items/wind.png",
+    ["83749125-dd27-4c01-93e2-49ae2b5de364"] = "assets/7items/ninja_certificate.png"
 }
 
 local starLevelCap = {
@@ -126,7 +140,8 @@ function scene:show(event)
     }
 
     -- fetch characterId and stars
-    local url = string.format("%s/rest/v1/user_characters?select=characterId,stars&limit=1&id=eq.%s", supa.SUPABASE_URL,
+    local url = string.format(
+        "%s/rest/v1/user_characters?select=characterId,stars,level,attack,health&limit=1&id=eq.%s", supa.SUPABASE_URL,
         recordId)
     network.request(url, "GET", function(evt)
         if evt.isError then
@@ -140,7 +155,7 @@ function scene:show(event)
 
         -- show card
         local card = Card.new({
-            x = display.contentCenterX,
+            x = 150,
             y = display.contentCenterY + 40,
             characterId = d.characterId,
             scaleFactor = 1,
@@ -148,22 +163,93 @@ function scene:show(event)
         })
         self.cardGroup:insert(card)
 
-        -- display stars
-        local spacing = 40
-        local yStars = display.contentCenterY + 160
-        for i = 1, MAX_STARS do
-            local img = (i <= d.stars) and "assets/7misc/misc_star_on.png" or "assets/7misc/misc_star_off.png"
-            local star = display.newImageRect(self.starsGroup, img, 32, 32)
-            star.x = display.contentCenterX + (i - (MAX_STARS + 1) / 2) * spacing
-            star.y = yStars
-        end
+        local baseY = card.y + (card.height or 0) / 2 + 20 -- 20px de espaçamento
+
+        -- Level
+        local levelText = display.newText({
+            parent = self.cardGroup,
+            text = "Level: " .. d.level,
+            x = card.x,
+            y = baseY,
+            font = native.systemFont,
+            fontSize = 18
+        })
+        levelText:setFillColor(1, 1, 0)
+
+        -- Health
+        local healthText = display.newText({
+            parent = self.cardGroup,
+            text = "Health: " .. d.health,
+            x = card.x,
+            y = baseY + 24,
+            font = native.systemFont,
+            fontSize = 16
+        })
+        healthText:setFillColor(0, 1, 0)
+
+        -- Attack
+        local attackText = display.newText({
+            parent = self.cardGroup,
+            text = "Attack: " .. d.attack,
+            x = card.x,
+            y = baseY + 48,
+            font = native.systemFont,
+            fontSize = 16
+        })
+        attackText:setFillColor(1, 0, 0)
+
+        local card2 = Card.new({
+            x = display.contentCenterX + 150,
+            y = display.contentCenterY + 40,
+            characterId = d.characterId,
+            scaleFactor = 1,
+            stars = d.stars + 1
+        })
+        self.cardGroup:insert(card2)
+
+        local baseY = card2.y + (card2.height or 0) / 2 + 20 -- 20px de espaçamento
+
+        -- Level
+        local levelText2 = display.newText({
+            parent = self.cardGroup,
+            text = "Level: " .. d.level,
+            x = card2.x,
+            y = baseY,
+            font = native.systemFont,
+            fontSize = 18
+        })
+        levelText2:setFillColor(1, 1, 0)
+
+        -- Health
+        local healthValue = math.floor(d.health * 1.1)
+        local healthText2 = display.newText({
+            parent = self.cardGroup,
+            text = "Health: " .. healthValue,
+            x = card2.x,
+            y = baseY + 24,
+            font = native.systemFont,
+            fontSize = 16
+        })
+        healthText2:setFillColor(0, 1, 0)
+
+        -- Attack
+        local attackValue = math.floor(d.attack * 1.1)
+        local attackText2 = display.newText({
+            parent = self.cardGroup,
+            text = "Attack: " .. attackValue,
+            x = card2.x,
+            y = baseY + 48,
+            font = native.systemFont,
+            fontSize = 16
+        })
+        attackText2:setFillColor(1, 0, 0)
 
         -- raise button
         local btnRaise = display.newText({
             parent = self.starsGroup,
             text = "↑ Star",
             x = display.contentCenterX,
-            y = yStars + 50,
+            y = display.contentCenterY + 50,
             font = native.systemFontBold,
             fontSize = 18
         })

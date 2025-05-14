@@ -523,7 +523,7 @@ function scene:show(event)
 
                     -- Novo level
                     local newLevel = baseLevel
-                    for lvl = baseLevel + 1, MAX_LEVEL do
+                    for lvl = baseLevel + 1, levelCap do
                         if xpThresholds[lvl] and newXP >= xpThresholds[lvl] then
                             newLevel = lvl
                         else
@@ -541,12 +541,20 @@ function scene:show(event)
                         end
                     end
 
+                    local newHP, newATK = baseHP, baseATK
+                    for lvlStep = baseLevel, newLevel - 1 do
+                        local mult = (lvlStep <= 40 and 1.05) or (lvlStep <= 80 and 1.03) or 1.02
+                        newHP = math.floor(newHP * mult)
+                        newATK = math.floor(newATK * mult)
+                    end
+
                     -- 4) Persistir no banco user_characters
                     local patchCharUrl2 = string.format("%s/rest/v1/user_characters?id=eq.%s", supa.SUPABASE_URL,
                         tostring(recordId))
                     local bodyChar = json.encode({
                         xp = newXP,
                         level = newLevel,
+
                         health = newHP,
                         attack = newATK
                     })

@@ -226,7 +226,7 @@ function scene:create(event)
             timer.performWithDelay(300, function()
                 composer.gotoScene("journey.journeyFormation", {
                     params = {
-                        op = "journey.specialChapters.specialOpponents.food_1",
+                        op = "journey.specialChapters.specialOpponents.agsq",
                         form = "opponent_", -- opponent_ | boss_,
                         bg = 2,
                         title = "Comum",

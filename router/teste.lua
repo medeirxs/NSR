@@ -1,6 +1,7 @@
 local composer = require("composer")
 local widget = require("widget")
 local wS = require("journey.winScreen")
+local raiseItems = require("components.showRaiseItems")
 
 local scene = composer.newScene()
 
@@ -11,7 +12,12 @@ function scene:create(event)
         display.contentHeight * 1.44)
     image.x, image.y = display.contentCenterX, display.contentCenterY -- display.contentWidth, display.contentHeight \* 1.44
 
-    local wS = wS.new({})
+    local raiseItems = raiseItems.new({
+        x = display.contentCenterX - 110,
+        y = 0,
+        characterId = "058fab51-e43a-4896-86fe-83f579e701fd",
+        stars = 4
+    })
 end
 
 scene:addEventListener("create", scene)

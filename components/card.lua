@@ -96,7 +96,7 @@ function card.new(params)
             [9] = {"on", "off", "off"},
             [10] = {"on", "on", "off"},
             [11] = {"on", "on", "on"},
-            [12] = {"off"},
+            [12] = {"off", "off", "off", "off"},
             [13] = {"on"},
             [14] = {}
         }

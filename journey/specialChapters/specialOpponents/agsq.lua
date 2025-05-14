@@ -34,8 +34,8 @@ formation1[1] = {
 formation1[2] = nil
 
 formation1[3] = {
-    card_id = 101,
-    uuid = "opponent-101",
+    card_id = 103,
+    uuid = "opponent-103",
     atk = 99,
     def = 0.12,
     hp = 643,
@@ -47,7 +47,7 @@ formation1[3] = {
     cri = 0,
     res = 0.0051,
     card_image = {"assets/7sprites/kankuro3.png", "assets/7sprites/kankuro4.png", "assets/7sprites/kakuro5.png"},
-    ab = "shuriken",
+    ab = "kunai",
     sp = "giant_hand_attack",
     card_type = "def",
     name = "Oponente",
@@ -60,8 +60,8 @@ formation1[3] = {
 formation1[4] = nil
 
 formation1[5] = {
-    card_id = 101,
-    uuid = "opponent-101",
+    card_id = 105,
+    uuid = "opponent-105",
     atk = 1599,
     def = 5,
     hp = 345,
@@ -72,13 +72,13 @@ formation1[5] = {
     armor = 1,
     cri = 0.0102,
     res = 0,
-    card_image = {"assets/7sprites/lee3.png", "assets/7sprites/lee4.png", "assets/7sprites/lee5.png"},
-    ab = "explosive_seal",
+    card_image = {"assets/7sprites/rock_lee3.png", "assets/7sprites/rock_lee4.png", "assets/7sprites/rock_lee5.png"},
+    ab = "punch",
     sp = "fortune_tiger",
     card_type = "atk",
     name = "Oponente",
     index = 5,
-    stars = 3,
+    stars = 4,
     size = 1,
     isOpponent = true
 } --
@@ -150,8 +150,8 @@ formation2[3] = {
 formation2[4] = nil
 
 formation2[5] = {
-    card_id = 103,
-    uuid = "opponent-103",
+    card_id = 105,
+    uuid = "opponent-105",
     atk = 1730,
     def = 5,
     hp = 447,
@@ -211,7 +211,7 @@ formation3[2] = {
     name = "Oponente Card 2",
     index = 2,
     stars = 3,
-    size = 1.5,
+    size = 1.2,
     isOpponent = true
 }
 
@@ -238,7 +238,7 @@ formation3[4] = {
     name = "Oponente Card 2",
     index = 2,
     stars = 3,
-    size = 1.5,
+    size = 1,
     isOpponent = true
 }
 
@@ -265,7 +265,7 @@ formation3[6] = {
     name = "Oponente Card 2",
     index = 2,
     stars = 3,
-    size = 1.5,
+    size = 1,
     isOpponent = true
 }
 
