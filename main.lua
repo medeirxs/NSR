@@ -4,25 +4,25 @@ local userData = require("lib.userData")
 display.setStatusBar(display.HiddenStatusBar)
 
 native.setProperty("androidSystemUiVisibility", "immersiveSticky")
-if (system.getInfo("platformName") == "Android") then
-    local androidVersion = string.sub(system.getInfo("platformVersion"), 1, 3)
-    if (androidVersion and tonumber(androidVersion) >= 4.4) then
-        native.setProperty("androidSystemUiVisibility", "immersiveSticky")
-    elseif (androidVersion) then
-        native.setProperty("androidSystemUiVisibility", "lowProfile")
-    end
+if system.getInfo("platformName") == "Android" then
+	local androidVersion = string.sub(system.getInfo("platformVersion"), 1, 3)
+	if androidVersion and tonumber(androidVersion) >= 4.4 then
+		native.setProperty("androidSystemUiVisibility", "immersiveSticky")
+	elseif androidVersion then
+		native.setProperty("androidSystemUiVisibility", "lowProfile")
+	end
 end
 
 local data = userData.load()
 
 if data and data.id and data.server then
-    composer.gotoScene("interfaces.growing.raise", {
-        --     effect = "fade",
-        time = 1
-    })
+	composer.gotoScene("interfaces.growing.improve", {
+		--     effect = "fade",
+		time = 1,
+	})
 else
-    composer.gotoScene("router.auth", {
-        effect = "fade",
-        time = 1
-    })
+	composer.gotoScene("router.auth", {
+		effect = "fade",
+		time = 1,
+	})
 end

@@ -157,18 +157,35 @@ function scene:create(event)
 		espessuraContorno = 2,
 	})
 
-	local tabFormationBg = display.newImageRect(sceneGroup, "assets/7button/btn_tab_s9.png", 236, 82)
-	tabFormationBg.x, tabFormationBg.y = 110, -128
+	local orderBg = display.newImageRect(sceneGroup, "assets/7button/btn_tab_s9.png", 236, 82)
+	orderBg.x, orderBg.y = 110, -128
 	local changeMemberText = textile.new({
 		group = sceneGroup,
 		texto = " Elevar ",
-		x = tabFormationBg.x,
-		y = tabFormationBg.y + 5,
+		x = orderBg.x,
+		y = orderBg.y + 5,
 		tamanho = 22,
 		corTexto = { 0.6, 0.6, 0.6 }, -- Amarelo {0.95, 0.86, 0.31}
 		corContorno = { 0, 0, 0 },
 		espessuraContorno = 2,
 	})
+	local cloudOn = require("utils.cloudOn")
+	local cloudOff = require("utils.cloudOff")
+	orderBg:addEventListener("tap", function()
+		cloudOn.show({
+			time = 300,
+		})
+		timer.performWithDelay(300, function()
+			composer.removeScene("interfaces.growing.improve")
+			composer.gotoScene("interfaces.growing.improve")
+		end)
+		timer.performWithDelay(300, function()
+			cloudOff.show({
+				group = display.getCurrentStage(),
+				time = 600,
+			})
+		end)
+	end)
 
 	local select = textile.new({
 		texto = "Selec.\numa\ncarta.",
@@ -291,7 +308,7 @@ function scene:show(event)
 		local maxLevel = getMaxLevel(d.stars)
 		local upMaxLevel = getNextMaxLevel(d.stars)
 
-		local levelText = textile.new({
+		local levelText = textile.new({ --aqui porra
 			texto = d.level .. "/" .. maxLevel .. " ",
 			x = display.contentCenterX - 65,
 			y = display.contentCenterY - 107,
@@ -302,6 +319,7 @@ function scene:show(event)
 			anchorX = 100,
 			anchorY = 0,
 		})
+		self.cardGroup:insert(levelText)
 
 		local healthText = textile.new({
 			texto = d.health .. " ",
@@ -314,6 +332,7 @@ function scene:show(event)
 			anchorX = 100,
 			anchorY = 0,
 		})
+		self.cardGroup:insert(healthText)
 
 		local attackText = textile.new({
 			texto = d.attack .. " ",
@@ -326,6 +345,7 @@ function scene:show(event)
 			anchorX = 100,
 			anchorY = 0,
 		})
+		self.cardGroup:insert(attackText)
 
 		local cardPreview = Card.new({
 			x = actualCard.x + 335,
@@ -347,6 +367,7 @@ function scene:show(event)
 			anchorX = 100,
 			anchorY = 0,
 		})
+		self.cardGroup:insert(levelText2)
 
 		-- Health
 		local healthValue = math.floor(d.health * 1.1)
@@ -361,6 +382,7 @@ function scene:show(event)
 			anchorX = 100,
 			anchorY = 0,
 		})
+		self.cardGroup:insert(healthText2)
 
 		-- Attack
 		local attackValue = math.floor(d.attack * 1.1)
@@ -375,6 +397,7 @@ function scene:show(event)
 			anchorX = 100,
 			anchorY = 0,
 		})
+		self.cardGroup:insert(attackText2)
 
 		local advanceButton =
 			display.newImageRect(self.starsGroup, "assets/7button/btn_common_yellow_s9_l.png", 280 * 1.6, 40 * 1.6)
@@ -393,125 +416,123 @@ function scene:show(event)
 
 		-- raise handler
 		local function onRaiseTap()
-			transition.to(actualCard, {
-				time = 300,
-				alpha = 0,
-			})
-			transition.to(levelText, {
-				time = 300,
-				alpha = 0,
-				onComplete = function()
-					levelText.text = "0/" .. maxLevel
-					levelText.alpha = 1
-				end,
-			})
-			transition.to(healthText, {
-				time = 300,
-				alpha = 0,
-				onComplete = function()
-					healthText.text = "0"
-					healthText.alpha = 1
-				end,
-			})
-			transition.to(attackText, {
-				time = 300,
-				alpha = 0,
-				onComplete = function()
-					attackText.text = "0"
-					attackText.alpha = 1
-				end,
-			})
-
+			-- 1) Verifica seleção
 			if not _G.chaId then
 				native.showAlert("Aviso", "Selecione um personagem primeiro", { "OK" })
 				return
 			end
+			local recordId = _G.chaId
 
-			-- fetch current full character record
-			local fetchUrl = string.format(
-				"%s/rest/v1/user_characters?select=characterId,stars,level,health,attack&limit=1&id=eq.%s",
+			-- cabeçalhos Supabase
+			local headers = {
+				["Content-Type"] = "application/json",
+				["apikey"] = supa.SUPABASE_ANON_KEY,
+				["Authorization"] = "Bearer " .. supa.SUPABASE_ANON_KEY,
+			}
+
+			-- 2) Busca characterId e stars atuais
+			local getCharUrl = string.format(
+				"%s/rest/v1/user_characters?select=characterId,stars,level&limit=1&id=eq.%s",
 				supa.SUPABASE_URL,
 				recordId
 			)
-			network.request(fetchUrl, "GET", function(evt2)
-				if evt2.isError then
+			network.request(getCharUrl, "GET", function(evt)
+				if evt.isError then
 					native.showAlert("Erro", "Não foi possível ler personagem", { "OK" })
 					return
 				end
-				local d2 = json.decode(evt2.response)[1]
-				if not d2 then
+				local d = json.decode(evt.response)[1]
+				if not d then
 					native.showAlert("Erro", "Personagem não encontrado", { "OK" })
 					return
 				end
 
-				local currentStars = d2.stars
-				local currentLevel = d2.level
-				local charUuid = d2.characterId
+				local currentStars = d.stars or 0
+				local currentLevel = d.level or 0
+				local charUuid = d.characterId
 
-				-- level cap check
 				local requiredLevel = starLevelCap[currentStars]
 				if requiredLevel and currentLevel < requiredLevel then
 					native.showAlert(
 						"Aviso",
-						("Para evoluir de %d→%d stars, precisa nível %d"):format(
-							currentStars,
-							currentStars + 1,
-							requiredLevel
-						),
+						"Para evoluir de "
+							.. currentStars
+							.. "→"
+							.. (currentStars + 1)
+							.. " stars, o personagem deve estar pelo menos no nível "
+							.. requiredLevel,
 						{ "OK" }
 					)
 					return
 				end
 
-				-- generic stars 2→3,3→4,4→5,5→6,6→7,7→8 via items
-				if currentStars >= 2 and currentStars < 8 then
-					local req = starRequirements[currentStars] or {}
-					local invUrl = string.format(
+				-- CASE 1: Stars 2→3, 3→4, 4→5 via itens
+				if starRequirements[currentStars] and currentStars >= 2 and currentStars < 8 then
+					local req = starRequirements[currentStars]
+					-- 3) Busca inventário do usuário
+					local fetchItemsUrl = string.format(
 						"%s/rest/v1/user_items?userId=eq.%s&select=itemId,quantity,id",
 						supa.SUPABASE_URL,
-						self.userId
+						scene.userId
 					)
-					network.request(invUrl, "GET", function(fe)
+					network.request(fetchItemsUrl, "GET", function(fe)
 						if fe.isError then
 							native.showAlert("Erro", "Não foi possível ler inventário", { "OK" })
 							return
 						end
-						local items = json.decode(fe.response) or {}
+						local allItems = json.decode(fe.response) or {}
 						local map = {}
-						for _, r in ipairs(items) do
+						for _, r in ipairs(allItems) do
 							map[r.itemId] = r
 						end
 
-						-- verify
-						for _, need in ipairs(req) do
-							if not map[need] or map[need].quantity < 1 then
+						-- 4) Verifica requisitos
+						for _, needed in ipairs(req) do
+							local rec = map[needed]
+							if not rec or rec.quantity < 1 then
 								native.showAlert("Aviso", "Faltam itens para evoluir stars", { "OK" })
 								return
 							end
 						end
 
-						-- consume
+						-- 5) Consome itens
 						local pending = #req
-						for _, need in ipairs(req) do
-							local rec = map[need]
+						for _, needed in ipairs(req) do
+							local rec = map[needed]
 							network.request(
-								("%s/rest/v1/user_items?id=eq.%s"):format(supa.SUPABASE_URL, rec.id),
+								string.format("%s/rest/v1/user_items?id=eq.%s", supa.SUPABASE_URL, rec.id),
 								"PATCH",
-								function(pe)
+								function(pi)
 									pending = pending - 1
 									if pending == 0 then
-										-- all items consumed → PATCH stars +10% buffs
-										local newStars = currentStars + 1
-										local newHealth = math.floor(d2.health * 1.10)
-										local newAttack = math.floor(d2.attack * 1.10)
+										-- 6) Evolui stars
 										network.request(
-											("%s/rest/v1/user_characters?id=eq.%s"):format(supa.SUPABASE_URL, recordId),
+											string.format(
+												"%s/rest/v1/user_characters?id=eq.%s",
+												supa.SUPABASE_URL,
+												recordId
+											),
 											"PATCH",
 											function(pc)
 												if pc.isError then
 													native.showAlert("Erro", "Falha ao evoluir stars", { "OK" })
 													return
 												end
+												local evolveCard = require("lib.evolveCard")
+												local cardEffect = evolveCard.new({
+													group = sceneGroup,
+													x = display.contentCenterX,
+													y = display.contentCenterY - 300,
+													time = 800, -- opcional
+													loopCount = 1, -- opcional
+													onComplete = function()
+														print("Evolução da carta concluída!")
+														-- por exemplo: cardEffect:removeSelf()
+													end,
+												})
+												timer.performWithDelay(750, function()
+													cardEffect:removeSelf()
+												end)
 												transition.to(actualCard, {
 													time = 300,
 													alpha = 0,
@@ -544,9 +565,7 @@ function scene:show(event)
 											{
 												headers = headers,
 												body = json.encode({
-													stars = newStars,
-													health = newHealth,
-													attack = newAttack,
+													stars = currentStars + 1,
 												}),
 											}
 										)
@@ -554,44 +573,68 @@ function scene:show(event)
 								end,
 								{
 									headers = headers,
-									body = json.encode({ quantity = rec.quantity - 1 }),
+									body = json.encode({
+										quantity = rec.quantity - 1,
+									}),
 								}
 							)
 						end
-					end, { headers = headers })
+					end, {
+						headers = headers,
+					})
 
-				-- stars 8→9 consume 1 char stars=8
-				elseif currentStars == 8 then
-					local fetchChars = string.format(
-						"%s/rest/v1/user_characters?select=id,health,attack&characterId=eq.%s&stars=eq.8&id=neq.%s",
+					-- CASE 2: Stars 5→6 via consumo de 1 personagem stars=5
+				elseif currentStars == 5 then
+					local fetchUrl = string.format(
+						"%s/rest/v1/user_characters?select=id&characterId=eq.%s&stars=eq.5&id=neq.%s",
 						supa.SUPABASE_URL,
 						charUuid,
 						recordId
 					)
-					network.request(fetchChars, "GET", function(fe)
-						local recs = json.decode(fe.response) or {}
-						if #recs < 1 then
-							native.showAlert("Aviso", "Precisa de 1 personagem Stars 8", { "OK" })
+					network.request(fetchUrl, "GET", function(fe)
+						if fe.isError then
+							native.showAlert("Erro", "Não foi possível ler personagens", { "OK" })
 							return
 						end
-						local other = recs[1]
-						-- delete consumed char
+						local recs = json.decode(fe.response) or {}
+						if #recs < 1 then
+							native.showAlert("Aviso", "Você precisa de mais 1 personagem Stars 5", { "OK" })
+							return
+						end
+						-- 4) Deleta 1 personagem
+						local otherId = recs[1].id
 						network.request(
-							("%s/rest/v1/user_characters?id=eq.%s"):format(supa.SUPABASE_URL, other.id),
+							string.format("%s/rest/v1/user_characters?id=eq.%s", supa.SUPABASE_URL, otherId),
 							"DELETE",
 							function(pd)
 								if pd.isError then
 									native.showAlert("Erro", "Falha ao consumir personagem", { "OK" })
 									return
 								end
-								-- now evolve
-								local newStars = 9
-								local newHealth = math.floor(d2.health * 1.10)
-								local newAttack = math.floor(d2.attack * 1.10)
+								-- 5) Evolui o selecionado
 								network.request(
-									("%s/rest/v1/user_characters?id=eq.%s"):format(supa.SUPABASE_URL, recordId),
+									string.format("%s/rest/v1/user_characters?id=eq.%s", supa.SUPABASE_URL, recordId),
 									"PATCH",
-									function(pc)
+									function(pp)
+										if pp.isError then
+											native.showAlert("Erro", "Falha ao evoluir stars", { "OK" })
+											return
+										end
+										local evolveCard = require("lib.evolveCard")
+										local cardEffect = evolveCard.new({
+											group = sceneGroup,
+											x = display.contentCenterX,
+											y = display.contentCenterY - 300,
+											time = 800, -- opcional
+											loopCount = 1, -- opcional
+											onComplete = function()
+												print("Evolução da carta concluída!")
+												-- por exemplo: cardEffect:removeSelf()
+											end,
+										})
+										timer.performWithDelay(750, function()
+											cardEffect:removeSelf()
+										end)
 										transition.to(actualCard, {
 											time = 300,
 											alpha = 0,
@@ -624,47 +667,75 @@ function scene:show(event)
 									{
 										headers = headers,
 										body = json.encode({
-											stars = newStars,
-											health = newHealth,
-											attack = newAttack,
+											stars = 6,
 										}),
 									}
 								)
 							end,
-							{ headers = headers }
+							{
+								headers = headers,
+							}
 						)
-					end, { headers = headers })
+					end, {
+						headers = headers,
+					})
 
-				-- stars 9→10 consume 2 chars stars=8
-				elseif currentStars == 9 then
-					local fetchChars = string.format(
-						"%s/rest/v1/user_characters?select=id,health,attack&characterId=eq.%s&stars=eq.8&id=neq.%s",
+					-- CASE 3: Stars 6→7 via consumo de 2 personagens stars=5
+				elseif currentStars == 6 then
+					local fetchUrl = string.format(
+						"%s/rest/v1/user_characters?select=id&characterId=eq.%s&stars=eq.5&id=neq.%s",
 						supa.SUPABASE_URL,
 						charUuid,
 						recordId
 					)
-					network.request(fetchChars, "GET", function(fe)
-						local recs = json.decode(fe.response) or {}
-						if #recs < 2 then
-							native.showAlert("Aviso", "Precisa de 2 personagens Stars 8", { "OK" })
+					network.request(fetchUrl, "GET", function(fe)
+						if fe.isError then
+							native.showAlert("Erro", "Não foi possível ler personagens", { "OK" })
 							return
 						end
-						local toDel = { recs[1], recs[2] }
-						local done = 0
-						for _, other in ipairs(toDel) do
+						local recs = json.decode(fe.response) or {}
+						if #recs < 2 then
+							native.showAlert("Aviso", "Você precisa de 2 personagens Stars 5", { "OK" })
+							return
+						end
+						-- 4) Deleta os dois primeiros
+						local deleted = 0
+						for i = 1, 2 do
+							local otherId = recs[i].id
 							network.request(
-								("%s/rest/v1/user_characters?id=eq.%s"):format(supa.SUPABASE_URL, other.id),
+								string.format("%s/rest/v1/user_characters?id=eq.%s", supa.SUPABASE_URL, otherId),
 								"DELETE",
 								function(pd)
-									done = done + 1
-									if done == 2 then
-										local newStars = 10
-										local newHealth = math.floor(d2.health * 1.10)
-										local newAttack = math.floor(d2.attack * 1.10)
+									deleted = deleted + 1
+									if deleted == 2 then
+										-- 5) Evolui o selecionado
 										network.request(
-											("%s/rest/v1/user_characters?id=eq.%s"):format(supa.SUPABASE_URL, recordId),
+											string.format(
+												"%s/rest/v1/user_characters?id=eq.%s",
+												supa.SUPABASE_URL,
+												recordId
+											),
 											"PATCH",
-											function(pc)
+											function(pp)
+												if pp.isError then
+													native.showAlert("Erro", "Falha ao evoluir stars", { "OK" })
+													return
+												end
+												local evolveCard = require("lib.evolveCard")
+												local cardEffect = evolveCard.new({
+													group = sceneGroup,
+													x = display.contentCenterX,
+													y = display.contentCenterY - 300,
+													time = 800, -- opcional
+													loopCount = 1, -- opcional
+													onComplete = function()
+														print("Evolução da carta concluída!")
+														-- por exemplo: cardEffect:removeSelf()
+													end,
+												})
+												timer.performWithDelay(750, function()
+													cardEffect:removeSelf()
+												end)
 												transition.to(actualCard, {
 													time = 300,
 													alpha = 0,
@@ -697,49 +768,62 @@ function scene:show(event)
 											{
 												headers = headers,
 												body = json.encode({
-													stars = newStars,
-													health = newHealth,
-													attack = newAttack,
+													stars = 7,
 												}),
 											}
 										)
 									end
 								end,
-								{ headers = headers }
+								{
+									headers = headers,
+								}
 							)
 						end
-					end, { headers = headers })
-
-				-- stars 10→11 consume 1 char stars=9
-				elseif currentStars == 10 then
-					local fetchChars = string.format(
-						"%s/rest/v1/user_characters?select=id,health,attack&characterId=eq.%s&stars=eq.9&id=neq.%s",
+					end, {
+						headers = headers,
+					})
+					-- Stars 8→9: consome 1 outro personagem stars=8
+				elseif currentStars == 8 then
+					local fetchUrl = string.format(
+						"%s/rest/v1/user_characters?select=id&characterId=eq.%s&stars=eq.8&id=neq.%s",
 						supa.SUPABASE_URL,
 						charUuid,
 						recordId
 					)
-					network.request(fetchChars, "GET", function(fe)
+					network.request(fetchUrl, "GET", function(fe)
 						local recs = json.decode(fe.response) or {}
 						if #recs < 1 then
-							native.showAlert("Aviso", "Precisa de 1 personagem Stars 9", { "OK" })
+							native.showAlert("Aviso", "Precisa de 1 personagem Stars 8", { "OK" })
 							return
 						end
-						local other = recs[1]
+						local otherId = recs[1].id
 						network.request(
-							("%s/rest/v1/user_characters?id=eq.%s"):format(supa.SUPABASE_URL, other.id),
+							string.format("%s/rest/v1/user_characters?id=eq.%s", supa.SUPABASE_URL, otherId),
 							"DELETE",
 							function(pd)
 								if pd.isError then
-									native.showAlert("Erro", "Falha ao consumir personagem", { "OK" })
 									return
 								end
-								local newStars = 11
-								local newHealth = math.floor(d2.health * 1.10)
-								local newAttack = math.floor(d2.attack * 1.10)
+								-- evolui para 9
 								network.request(
-									("%s/rest/v1/user_characters?id=eq.%s"):format(supa.SUPABASE_URL, recordId),
+									string.format("%s/rest/v1/user_characters?id=eq.%s", supa.SUPABASE_URL, recordId),
 									"PATCH",
-									function(pc)
+									function(pp)
+										local evolveCard = require("lib.evolveCard")
+										local cardEffect = evolveCard.new({
+											group = sceneGroup,
+											x = display.contentCenterX,
+											y = display.contentCenterY - 300,
+											time = 800, -- opcional
+											loopCount = 1, -- opcional
+											onComplete = function()
+												print("Evolução da carta concluída!")
+												-- por exemplo: cardEffect:removeSelf()
+											end,
+										})
+										timer.performWithDelay(750, function()
+											cardEffect:removeSelf()
+										end)
 										transition.to(actualCard, {
 											time = 300,
 											alpha = 0,
@@ -772,24 +856,209 @@ function scene:show(event)
 									{
 										headers = headers,
 										body = json.encode({
-											stars = newStars,
-											health = newHealth,
-											attack = newAttack,
+											stars = 9,
 										}),
 									}
 								)
 							end,
-							{ headers = headers }
+							{
+								headers = headers,
+							}
 						)
-					end, { headers = headers })
+					end, {
+						headers = headers,
+					})
+
+					-- Stars 9→10: consome 2 personagens stars=8
+				elseif currentStars == 9 then
+					local fetchUrl = string.format(
+						"%s/rest/v1/user_characters?select=id&characterId=eq.%s&stars=eq.8&id=neq.%s",
+						supa.SUPABASE_URL,
+						charUuid,
+						recordId
+					)
+					network.request(fetchUrl, "GET", function(fe)
+						local recs = json.decode(fe.response) or {}
+						if #recs < 2 then
+							native.showAlert("Aviso", "Precisa de 2 personagens Stars 8", { "OK" })
+							return
+						end
+						local toDelete = { recs[1].id, recs[2].id }
+						local done = 0
+						for _, otherId in ipairs(toDelete) do
+							network.request(
+								string.format("%s/rest/v1/user_characters?id=eq.%s", supa.SUPABASE_URL, otherId),
+								"DELETE",
+								function(pd)
+									done = done + 1
+									if done == 2 then
+										network.request(
+											string.format(
+												"%s/rest/v1/user_characters?id=eq.%s",
+												supa.SUPABASE_URL,
+												recordId
+											),
+											"PATCH",
+											function(pp)
+												local evolveCard = require("lib.evolveCard")
+												local cardEffect = evolveCard.new({
+													group = sceneGroup,
+													x = display.contentCenterX,
+													y = display.contentCenterY - 300,
+													time = 800, -- opcional
+													loopCount = 1, -- opcional
+													onComplete = function()
+														print("Evolução da carta concluída!")
+														-- por exemplo: cardEffect:removeSelf()
+													end,
+												})
+												timer.performWithDelay(750, function()
+													cardEffect:removeSelf()
+												end)
+												transition.to(actualCard, {
+													time = 300,
+													alpha = 0,
+												})
+												transition.to(levelText, {
+													time = 300,
+													alpha = 0,
+													onComplete = function()
+														levelText.text = "0/" .. maxLevel
+														levelText.alpha = 1
+													end,
+												})
+												transition.to(healthText, {
+													time = 300,
+													alpha = 0,
+													onComplete = function()
+														healthText.text = "0"
+														healthText.alpha = 1
+													end,
+												})
+												transition.to(attackText, {
+													time = 300,
+													alpha = 0,
+													onComplete = function()
+														attackText.text = "0"
+														attackText.alpha = 1
+													end,
+												})
+											end,
+											{
+												headers = headers,
+												body = json.encode({
+													stars = 10,
+												}),
+											}
+										)
+									end
+								end,
+								{
+									headers = headers,
+								}
+							)
+						end
+					end, {
+						headers = headers,
+					})
+
+					-- Stars 10→11: consome 1 personagem stars=9
+				elseif currentStars == 10 then
+					local fetchUrl = string.format(
+						"%s/rest/v1/user_characters?select=id&characterId=eq.%s&stars=eq.9&id=neq.%s",
+						supa.SUPABASE_URL,
+						charUuid,
+						recordId
+					)
+					network.request(fetchUrl, "GET", function(fe)
+						local recs = json.decode(fe.response) or {}
+						if #recs < 1 then
+							native.showAlert("Aviso", "Precisa de 1 personagem Stars 9", { "OK" })
+							return
+						end
+						local otherId = recs[1].id
+						network.request(
+							string.format("%s/rest/v1/user_characters?id=eq.%s", supa.SUPABASE_URL, otherId),
+							"DELETE",
+							function(pd)
+								if pd.isError then
+									return
+								end
+								network.request(
+									string.format("%s/rest/v1/user_characters?id=eq.%s", supa.SUPABASE_URL, recordId),
+									"PATCH",
+									function(pp)
+										local evolveCard = require("lib.evolveCard")
+										local cardEffect = evolveCard.new({
+											group = sceneGroup,
+											x = display.contentCenterX,
+											y = display.contentCenterY - 300,
+											time = 800, -- opcional
+											loopCount = 1, -- opcional
+											onComplete = function()
+												print("Evolução da carta concluída!")
+												-- por exemplo: cardEffect:removeSelf()
+											end,
+										})
+										timer.performWithDelay(750, function()
+											cardEffect:removeSelf()
+										end)
+										transition.to(actualCard, {
+											time = 300,
+											alpha = 0,
+										})
+										transition.to(levelText, {
+											time = 300,
+											alpha = 0,
+											onComplete = function()
+												levelText.text = "0/" .. maxLevel
+												levelText.alpha = 1
+											end,
+										})
+										transition.to(healthText, {
+											time = 300,
+											alpha = 0,
+											onComplete = function()
+												healthText.text = "0"
+												healthText.alpha = 1
+											end,
+										})
+										transition.to(attackText, {
+											time = 300,
+											alpha = 0,
+											onComplete = function()
+												attackText.text = "0"
+												attackText.alpha = 1
+											end,
+										})
+									end,
+									{
+										headers = headers,
+										body = json.encode({
+											stars = 11,
+										}),
+									}
+								)
+							end,
+							{
+								headers = headers,
+							}
+						)
+					end, {
+						headers = headers,
+					})
 				else
 					native.showAlert("Aviso", "Evolução de Stars " .. currentStars .. " não implementada", { "OK" })
 				end
-			end, { headers = headers })
+			end, {
+				headers = headers,
+			})
 		end
 
 		advanceButton:addEventListener("tap", onRaiseTap)
-	end, { headers = headers })
+	end, {
+		headers = headers,
+	})
 end
 
 scene:addEventListener("create", scene)

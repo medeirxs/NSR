@@ -93,8 +93,6 @@ function scene:create(event)
         scaleFactor = 1.17
     })
 
-    local iconHp = display.newImageRect(sceneGroup, "assets/7icon/icon_hp.png", 48, 48)
-    iconHp.x, iconHp.y = display.contentCenterX - 100, display.contentCenterY - 27
     local hpText = textile.new({
         group = sceneGroup,
         texto = 7321321 .. " ",
@@ -105,9 +103,11 @@ function scene:create(event)
         corContorno = {0, 0, 0},
         espessuraContorno = 2,
         anchorX = 100
-
+        
     })
-
+    
+    local iconHp = display.newImageRect(sceneGroup, "assets/7icon/icon_hp.png", 48, 48)
+    iconHp.x, iconHp.y = display.contentCenterX - 100, display.contentCenterY - 27
     local iconAtk = display.newImageRect(sceneGroup, "assets/7icon/icon_atk.png", 48, 48)
     iconAtk.x, iconAtk.y = display.contentCenterX - 100, display.contentCenterY + 11
     local atkText = textile.new({
