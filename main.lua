@@ -16,7 +16,7 @@ end
 local data = userData.load()
 
 if data and data.id and data.server then
-	composer.gotoScene("interfaces.shop", {
+	composer.gotoScene("interfaces.backpack", {
 		--     effect = "fade",
 		time = 1,
 	})
